@@ -651,6 +651,17 @@ namespace SrbRuby
             _variableList.Add(v.Name, v);
         }
 
+        public void Remove(VariableItem v)
+        {
+            if (v.Name !=null && _variableList.Contains(v.Name))
+                _variableList.Remove(v.Name);
+        }
+
+        public bool Exist(string key)
+        {
+            return (_variableList[key] != null);
+        }
+
         public VariableItem GetVariable(string name)
         {
             var retVar = ((VariableItem)_variableList[name]);

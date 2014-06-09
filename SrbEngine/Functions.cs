@@ -61,9 +61,9 @@ namespace SrbRuby
             return null;
         }
 
-        public void Execute()
+        public VariableItem Execute()
         {
-            VariableItem lastItem;
+            var lastItem = new VariableItem("false");
             var managerialWords = new List<string>() { "if ", "elseif ", "while ", "for " };
             var statementList = new List<string> { _currentFunc.Id.ToString() };
             var commandList = _commands.GetCommandNameList();
@@ -116,6 +116,8 @@ namespace SrbRuby
                     statementList.Remove(statementList[statementList.Count - 1]);
                 }
             }
+
+            return lastItem;
         }
 
         private string Simplification(int pos)
@@ -123,7 +125,7 @@ namespace SrbRuby
             string codeItem = _currentFunc.Code[pos];
             var variableTypeList = _variables.GetVariableTypeList();
             var commandList = _commands.GetCommandNameList();
-
+            var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
             // Find function
             foreach (var item in _funcList)
@@ -136,8 +138,20 @@ namespace SrbRuby
                     var last = codeItem.IndexOf(")", first);
                     if (last == -1) throw new Exception("Error not found parameter block functions");
 
-                    codeItem = codeItem.Substring(0, first) + "|" + codeItem.Substring(first + 1, codeItem.Length - (first + 1));
-                    codeItem = codeItem.Substring(0, last) + "|" + codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+                    //codeItem = codeItem.Substring(0, first) + "|" + codeItem.Substring(first + 1, codeItem.Length - (first + 1));
+                    //codeItem = codeItem.Substring(0, last) + "|" + codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+
+                    // split parameters
+                    var funcParams = codeItem.Substring(first, first - last);
+                    if (calculateElements.Any(funcParams.Contains))
+                    {
+                        var funcParamsList = new List<string>(funcParams.Split(','));
+
+
+                    }
+                   
+
+
                 }
             }
 
@@ -147,7 +161,7 @@ namespace SrbRuby
             var cmdList = new List<string>(codeItem.Split(' '));
             cmdList.RemoveAll(i => i.Length < 1);
 
-            /*List<int> buf;
+            List<int> buf;
             while ((buf = GetDeepExpList(cmdList)) != null)
             {
                 var exp = buf.Select(i => cmdList[i]).ToList();
@@ -155,7 +169,7 @@ namespace SrbRuby
                 cmdList[buf[0]] = SimplifyExpression(exp) == new VariableItem("true") ? "true" : "false";
                 for (int i = 1; i < buf.Count; i++) cmdList[buf[i]] = "";
                 cmdList.RemoveAll(i => i.Length < 1);
-            }*/
+            }
 
 
 
@@ -169,77 +183,59 @@ namespace SrbRuby
         {
 
             var codeItem = _currentFunc.Code[pos];
-            var separateElements = new List<string>() { "(", ")", "{", "}", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
-            codeItem = separateElements.Aggregate(codeItem, (current, i) => current.Replace(i, " " + i + " "));
+           
 
             statementList.Add(Guid.NewGuid().ToString());
             var cmdList = new List<string>(codeItem.Split(' '));
             cmdList.RemoveAll(i => i.Length < 1);
 
+            // ******************************
+            // IF
+
             if (cmdList[0].Equals("if", StringComparison.OrdinalIgnoreCase))
             {
                 cmdList.RemoveAll(i => i == "if");
+                string exp = string.Empty;
+                exp = cmdList.Aggregate(exp, (c, i) => c += " " + i + " ");
 
-                List<int> buf;
-                while ((buf = GetDeepExpList(cmdList)) != null)
-                {
-                    var exp = buf.Select(i => cmdList[i]).ToList();
-                    exp.RemoveAll(i => i == "(" || i == ")");
-                    cmdList[buf[0]] = SimplifyExpression(exp) == new VariableItem("true") ? "true" : "false";
-                    for (int i = 1; i < buf.Count; i++) cmdList[buf[i]] = "";
-                    cmdList.RemoveAll(i => i.Length < 1);
-                }
-
-                if (SimplifyExpression(cmdList) == new VariableItem("true"))
+                if (SimlifyExpressionByParenthesis(exp) == new VariableItem("true"))
                 {
                     // execute true block 
-                    var elseBlock = FindBlock(pos, "else");
-                    var endBlock = FindBlock(pos, "end");
-                    if (elseBlock != null)
-                    {
-                        _jumpList[elseBlock] = new List<int> { (int)endBlock, (int)endBlock, (int)endBlock };
-                    }
-
+                    var elseBlock = _currentFunc.Code.IndexOf("else", pos);
+                    var endBlock = _currentFunc.Code.IndexOf("end", pos);
+                    if (elseBlock != -1) 
+                        _jumpList[elseBlock] = new List<int> { endBlock, endBlock, endBlock };
                 }
                 else
                 {
-                    // find else block and end
-                    var elseBlock = FindBlock(pos, "else");
-                    var endBlock = FindBlock(pos, "end");
-                    if (elseBlock != null)
-                        _jumpList.Add(pos, (int)elseBlock);
-                    else
-                        _jumpList.Add(pos, (int)endBlock);
+                    // Go to else block or end
+                    var elseBlock = _currentFunc.Code.IndexOf("else", pos);
+                    var endBlock = _currentFunc.Code.IndexOf("end", pos);
+                    _jumpList.Add(pos, elseBlock != -1 ? elseBlock : endBlock);
                 }
-
             }
+
+
+
+
+
+
+
         }
 
 
         #region Work with expression
 
-
-
-        private int? FindBlock(int from, string block)
-        {
-            for (int i = from; i < _currentFunc.Code.Count; i++)
-            {
-                if (_currentFunc.Code[i] == block)
-                {
-                    return i;
-                }
-            }
-            return null;
-        }
-
         private List<int> GetDeepExpList(List<string> exp)
         {
-            List<int> ret;
+            var ret =new List<int>();
 
             if (exp.Any(i => i.Contains("(")))
             {
-                var start = FindLastStr(exp, "(");
-                ret = GetBetweenList((int)start, (int)FindFirstStr(exp, ")", (int)start) + 1);
+                var start = exp.LastIndexOf("(");
+                var end = exp.IndexOf(")", start);
+                if (start != -1 && end == -1) throw new Exception("Can't find end parenthesis");
+                for (int i = start; i <= end; i++) { ret.Add(i); }
             }
             else
             {
@@ -248,36 +244,60 @@ namespace SrbRuby
             return ret;
         }
 
-        private List<int> GetBetweenList(int start, int end)
+        private VariableItem SimlifyExpressionByParenthesis(string codeItem)
         {
-            var ret = new List<int>();
+            var separateElements = new List<string>() { "(", ")", "{", "}", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
+            codeItem = separateElements.Aggregate(codeItem, (current, i) => current.Replace(i, " " + i + " "));
 
-            for (int i = start; i < end; i++)
+            int lastItem = -1;
+            while ((lastItem = codeItem.IndexOf('=', lastItem+1)) != -1)
             {
-                ret.Add(i);
-            }
-            return ret;
-        }
-
-        private int? FindLastStr(List<string> list, string s)
-        {
-            int? last = null;
-            for (int i = 0; i < list.Count; i++)
-                if (list[i] == s)
-                    last = i;
-            return last;
-        }
-
-        private int? FindFirstStr(List<string> list, string s, int start)
-        {
-            for (int i = start; i < list.Count; i++)
-                if (list[i] == s)
+                if (codeItem[lastItem - 1] != '<' && codeItem[lastItem - 1] != '>' &&
+                    codeItem[lastItem - 1] != '=' && codeItem[lastItem + 1] != '=')
                 {
-                    return i;
+                    codeItem = codeItem.Substring(0, lastItem) + " = " +
+                               codeItem.Substring(lastItem + 1, codeItem.Length - (lastItem + 1));
+                    lastItem += 2;
                 }
-            return null;
-        }
+            }
 
+            lastItem = -1;
+            while ((lastItem = codeItem.IndexOf('>', lastItem + 1)) != -1)
+            {
+                if (codeItem[lastItem + 1] != '=')
+                {
+                    codeItem = codeItem.Substring(0, lastItem) + " > " +
+                               codeItem.Substring(lastItem + 1, codeItem.Length - (lastItem + 1));
+                    lastItem += 2;
+                }
+            }
+
+            lastItem = -1;
+            while ((lastItem = codeItem.IndexOf('<', lastItem + 1)) != -1)
+            {
+                if (codeItem[lastItem + 1] != '=')
+                {
+                    codeItem = codeItem.Substring(0, lastItem) + " < " +
+                               codeItem.Substring(lastItem + 1, codeItem.Length - (lastItem + 1));
+                    lastItem += 2;
+                }
+            }
+
+
+
+            var cmdList = new List<string>(codeItem.Split(' '));
+            List<int> buf;
+            while ((buf = GetDeepExpList(cmdList)) != null)
+            {
+                var exp = buf.Select(i => cmdList[i]).ToList();
+                exp.RemoveAll(i => i == "(" || i == ")");
+                cmdList[buf[0]] = SimplifyExpression(exp) == new VariableItem("true") ? "true" : "false";
+                for (int i = 1; i < buf.Count; i++) cmdList[buf[i]] = "";
+                cmdList.RemoveAll(i => i.Length < 1);
+            }
+
+            return SimplifyExpression(cmdList);
+        }
 
         private VariableItem SimplifyExpression(List<string> exp)
         {
@@ -312,13 +332,6 @@ namespace SrbRuby
             cmdList.RemoveAll(i => i.Length < 1);
 
 
-
-
-
-
-
-
-
             for (int i = 0; i < cmdList.Count; i++)
             {
                 if (cmdList[i].Equals(">") || cmdList[i].Equals(">=") ||
@@ -348,6 +361,8 @@ namespace SrbRuby
             }
 
             cmdList.RemoveAll(i => i.Length < 1);
+
+
 
             int y = 0;
             while (true)
@@ -386,6 +401,39 @@ namespace SrbRuby
             }
 
             cmdList.RemoveAll(i => i.Length < 1);
+
+
+            for (int i = 0; i < cmdList.Count; i++)
+            {
+                if (cmdList[i].Equals("="))
+                {
+                    VariableItem rez;
+                   
+                    if (_variables.Exist(cmdList[i - 1]))
+                    {
+                        var o1 = _variables.GetVariable(cmdList[i - 1]);
+                        var o2 = _variables.GetVariable(cmdList[i + 1]);
+                        rez = new VariableItem(o2.GetData(),o1.Name);
+                        _variables.Remove(o2);
+                        _variables.Remove(o1);
+                    }
+                    else
+                    {
+                        var o2 = _variables.GetVariable(cmdList[i + 1]);
+                        rez = new VariableItem(o2.GetData(), cmdList[i - 1]);
+                        _variables.Remove(o2);
+                    }
+                   
+                    cmdList[i - 1] = "";
+                    cmdList[i + 1] = "";
+                    cmdList[i] = rez.Name;
+                    _variables.Add(rez);
+                    cmdList.RemoveAll(j => j.Length < 1);
+                }
+            }
+
+            cmdList.RemoveAll(i => i.Length < 1);
+
 
             if (cmdList.Count == 1)
             {
