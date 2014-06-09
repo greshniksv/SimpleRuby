@@ -530,6 +530,16 @@ namespace SrbRuby
 
         public static VariableItem operator +(VariableItem a, VariableItem b)
         {
+            if ((a.Type != b.Type) && (a.Type == VariableType.String || a.Type == VariableType.String))
+            {
+                if (a.Type == VariableType.String)
+                    return new VariableItem("\"" + a + b + "\"");
+
+                if (b.Type == VariableType.String)
+                    return new VariableItem("\"" + b + a + "\"");
+            }
+
+
             if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
 
             if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||

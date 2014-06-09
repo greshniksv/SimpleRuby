@@ -75,12 +75,12 @@ namespace SrbRuby
             return command.Substring(0, command.IndexOf("(", System.StringComparison.Ordinal)).Trim();
         }
 
-        public void Execute(string command)
+        public void Execute(string command,List<VariableItem> param)
         {
 
-            var cmd = _commandHashTable[GetCommandName(command)] as ICommand;
+            var cmd = _commandHashTable[command] as ICommand;
             if (cmd != null)
-                cmd.Execute(GetParamsFromCommand(command));
+                cmd.Execute(param);
             else
                 throw new Exception("Command '" + command + "' not found !");
         }
