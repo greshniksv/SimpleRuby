@@ -16,10 +16,12 @@ namespace SrbRuby
         public string Name { get; set; }
         public List<string> Code { get; set; }
         public Guid Id { get; set; }
-
-        public object Clone()
+	    public List<string> Parameters { get; set; }
+	    
+	    public object Clone()
         {
-            return new FunctionItem() { Name = this.Name, Code = new List<string>(this.Code), Id = new Guid(Id.ToString()) };
+            return new FunctionItem() { Name = this.Name, Code = new List<string>(this.Code),
+										Id = new Guid(Id.ToString()), Parameters = new List<string>(Parameters)};
         }
     }
 
@@ -55,7 +57,7 @@ namespace SrbRuby
                 i => string.Equals(i.Name, funcName, StringComparison.OrdinalIgnoreCase)), _functionList))
             {
                 functions.ExecuteCodeEvent += (function, command) => FunctionExecuteCodeEvent(function, command);
-                functions.Execute();
+                functions.Execute(null);
             }
         }
 
@@ -91,8 +93,12 @@ namespace SrbRuby
 
                 if (buf.Contains("def"))
                 {
-                    var funcName = buf.Remove(buf.IndexOf("def"), 3).Trim();
-                    func.Add(new FunctionItem() { Name = funcName, Code = new List<string>(), Id = Guid.NewGuid() });
+                    //var funcName = buf.Remove(buf.IndexOf("def"), 3).Trim();
+	                var funcNameWithParam = buf.Split(' ');
+	                var param = new List<string>();
+	                for (int i = 2; i < funcNameWithParam.Length; i++) param.Add(funcNameWithParam[i]); 
+					func.Add(new FunctionItem() { Name = funcNameWithParam[1], 
+						Code = new List<string>(), Id = Guid.NewGuid(),Parameters = param});
                 }
 
                 if (manageWords.Any(buf.Contains))

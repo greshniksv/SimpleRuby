@@ -25,7 +25,7 @@ namespace SrbRuby
         {
             string Name();
             string Information();
-            string Execute(List<VariableItem> prmItem);
+			VariableItem Execute(List<VariableItem> prmItem);
         }
 
         private List<ICommand> _commandList;
@@ -75,12 +75,11 @@ namespace SrbRuby
             return command.Substring(0, command.IndexOf("(", System.StringComparison.Ordinal)).Trim();
         }
 
-        public void Execute(string command,List<VariableItem> param)
+		public VariableItem Execute(string command, List<VariableItem> param)
         {
-
             var cmd = _commandHashTable[command] as ICommand;
             if (cmd != null)
-                cmd.Execute(param);
+                return cmd.Execute(param);
             else
                 throw new Exception("Command '" + command + "' not found !");
         }
@@ -100,7 +99,7 @@ namespace SrbRuby
                     "Icon: asterisk, error, exclamation, hand, information, none, question, stop, warning";
             }
 
-            public string Execute(List<VariableItem> param)
+			public VariableItem Execute(List<VariableItem> param)
             {
                 if (param.Count() != 3) throw new Exception("Alert error! Count of params not valid! ");
 
@@ -108,7 +107,7 @@ namespace SrbRuby
                 if (!Enum.TryParse(param[2].ToString(), true, out icon)) icon = MessageBoxIcon.Error;
                 MessageBox.Show(param[0].ToString(), param[1].ToString(), MessageBoxButtons.OK, (MessageBoxIcon)icon);
 
-                return null;
+                return new VariableItem("true");
             }
 
         }
@@ -128,7 +127,7 @@ namespace SrbRuby
                     "Button: AbortRetryIgnore,OK,OKCancel,RetryCancel,YesNo,YesNoCancel";
             }
 
-            public string Execute(List<VariableItem> param)
+			public VariableItem Execute(List<VariableItem> param)
             {
                 if (param.Count() != 4) throw new Exception("Alert error! Count of params not valid! ");
 

@@ -15,7 +15,7 @@ namespace SrbRuby
         ListString, ListInt, ListBool, ListDouble, ListByte, ListChar
     }
 
-    public partial class VariableItem
+    public class VariableItem
     {
 
         public string StatementId { get; set; }
@@ -52,31 +52,30 @@ namespace SrbRuby
 
         public VariableItem(object ob, string name)
         {
-            Name = name;
-            Set(ob, name);
+            this.Name = name;
+            Set(ob);
         }
 
         public VariableItem(object ob)
         {
-            Name = Guid.NewGuid().ToString();
-            Set(ob, Name);
+			this.Name = Guid.NewGuid().ToString().Replace("-","");
+            Set(ob);
         }
-
-
 
         public VariableItem(string var)
         {
+			this.Name = Guid.NewGuid().ToString().Replace("-", "");
             Initialize(var);
         }
 
-        public virtual void Initialize(string var)
+        public void Initialize(string var)
         {
             //var var = _stringVariableForInit;
             // if true|false bool
             if (var == "true" || var == "false")
             {
                 bool b = (var == "true");
-                Set(b, Guid.NewGuid().ToString());
+                Set(b);
                 return;
             }
 
@@ -86,7 +85,7 @@ namespace SrbRuby
                 char d;
                 if (char.TryParse(var.Replace("'", "").Trim(), out d))
                 {
-                    Set(d, Guid.NewGuid().ToString());
+                    Set(d);
                     return;
                 }
             }
@@ -94,7 +93,7 @@ namespace SrbRuby
             // if " - string
             if (var.Contains("\""))
             {
-                Set(var.Replace("\"", "").Trim(), Guid.NewGuid().ToString());
+                Set(var.Replace("\"", "").Trim());
                 return;
             }
 
@@ -106,7 +105,7 @@ namespace SrbRuby
                     double d;
                     if (double.TryParse(var, out d))
                     {
-                        Set(d, Guid.NewGuid().ToString());
+                        Set(d);
                         return;
                     }
                 }
@@ -118,7 +117,7 @@ namespace SrbRuby
                 byte b;
                 if (byte.TryParse(var, out b))
                 {
-                    Set(b, Guid.NewGuid().ToString());
+                    Set(b);
                     return;
                 }
             }
@@ -129,7 +128,7 @@ namespace SrbRuby
                 Int32 i;
                 if (Int32.TryParse(var, out i))
                 {
-                    Set(i, Guid.NewGuid().ToString());
+                    Set(i);
                     return;
                 }
             }
@@ -144,7 +143,7 @@ namespace SrbRuby
 
         private object Variable { get; set; }
 
-        public void Set(object ob, string name)
+        public void Set(object ob)
         {
             var typeSplited = new List<string>(ob.GetType().AssemblyQualifiedName.Split('[', ','));
             typeSplited.RemoveAll(i => i.Trim().Length < 1);
@@ -168,7 +167,7 @@ namespace SrbRuby
                         break;
 
                     default:
-                        throw new Exception("Not found variable type! Name:" + name);
+                        throw new Exception("Not found variable type! Name:");
                 }
             }
             else
@@ -554,7 +553,7 @@ namespace SrbRuby
                     case VariableType.Byte:
                         return new VariableItem((byte)a.Variable + (byte)b.Variable);
                     case VariableType.String:
-                        return new VariableItem((string)a.Variable + (string)b.Variable);
+                        return new VariableItem("\""+(string)a.Variable + (string)b.Variable+"\"");
                 }
             }
 

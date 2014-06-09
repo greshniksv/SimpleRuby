@@ -61,9 +61,12 @@ namespace SrbRuby
             return null;
         }
 
-        public VariableItem Execute()
+        public VariableItem Execute(List<VariableItem> vars)
         {
-            var lastItem = new VariableItem("false");
+	        if (vars != null && vars.Count > 0) 
+				foreach (var variableItem in vars)_variables.Add(variableItem);
+
+	        var lastItem = new VariableItem("false");
             var managerialWords = new List<string>() { "if ", "elseif ", "while ", "for " };
             var statementList = new List<string> { _currentFunc.Id.ToString() };
             var commandList = _commands.GetCommandNameList();
@@ -95,7 +98,7 @@ namespace SrbRuby
 
 
                 // Code simplification
-                codeItem = Simplification(pos);
+				lastItem = Simplification(pos);
 
 
 
@@ -113,12 +116,13 @@ namespace SrbRuby
             return lastItem;
         }
 
-        private string Simplification(int pos)
+        private VariableItem Simplification(int pos)
         {
             string codeItem = _currentFunc.Code[pos];
             var variableTypeList = _variables.GetVariableTypeList();
             var commandList = _commands.GetCommandNameList();
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
+	        //VariableItem ret
 
             // Find function
             foreach (var item in _funcList)
@@ -135,12 +139,24 @@ namespace SrbRuby
                     //codeItem = codeItem.Substring(0, last) + "|" + codeItem.Substring(last + 1, codeItem.Length - (last + 1));
 
                     // split parameters
-                    var funcParams = codeItem.Substring(first,last - first);
-                    if (calculateElements.Any(funcParams.Contains))
-                    {
+                    var funcParams = codeItem.Substring(first+1,last - (first+1));
+                    //if (calculateElements.Any(funcParams.Contains))
+                    //{
                         var funcParamsList = new List<string>(funcParams.Split(','));
-                        var varListParams = funcParamsList.Select(j => SimlifyExpressionByParenthesis(j)).ToList();
-                    }
+                        var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
+
+	                    if (varListParams.Count != item.Parameters.Count)
+	                    {
+							throw new Exception("Not match parameters for function: " + item.Name);
+	                    }
+
+						for (int i = 0; i < varListParams.Count; i++) varListParams[i].Name = item.Parameters[i]; 
+	                    var ret = (new Functions(_funcList.FirstOrDefault(i => i.Id == item.Id), _funcList).Execute(varListParams));
+
+						_variables.Add(ret);
+	                    codeItem = codeItem.Substring(0, codeItem.IndexOf(item.Name)) + ret.Name +
+								   codeItem.Substring(last+1, codeItem.Length - (last+1));
+                    //}
 
                 }
             }
@@ -156,6 +172,8 @@ namespace SrbRuby
                     var first = codeItem.IndexOf("(", codeItem.IndexOf(item))+1;
                     if (first == -1) throw new Exception("Error not found parameter block functions");
 
+
+					//TODO: if many () ?
                     var last = codeItem.IndexOf(")", first);
                     if (last == -1) throw new Exception("Error not found parameter block functions");
 
@@ -163,9 +181,13 @@ namespace SrbRuby
                     //codeItem = codeItem.Substring(0, last) + "|" + codeItem.Substring(last + 1, codeItem.Length - (last + 1));
 
                     // split parameters
-                    var funcParamsList = new List<string>(codeItem.Substring(first, last - first).Split(','));
+					var funcParamsList = new List<string>(codeItem.Substring(first, last - first).Split(','));
                     var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
-                    _commands.Execute(item, varListParams);
+                    var ret = _commands.Execute(item, varListParams);
+
+					_variables.Add(ret);
+					codeItem = codeItem.Substring(0, codeItem.IndexOf(item)) + ret.Name +
+								   codeItem.Substring(last+1, codeItem.Length - (last+1));
                 }
             }
 
@@ -173,9 +195,8 @@ namespace SrbRuby
 
             // Simplify calculate block
 
-    
 
-            return "";
+			return SimlifyExpressionByParenthesis(codeItem);
         }
 
 
@@ -325,7 +346,7 @@ namespace SrbRuby
                     }
                     cmdList[i - 1] = "";
                     cmdList[i + 1] = "";
-                    cmdList[i] = (rez.Name = Guid.NewGuid().ToString());
+                    cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
                     _variables.Add(rez);
                     cmdList.RemoveAll(j => j.Length < 1);
                 }
@@ -356,7 +377,7 @@ namespace SrbRuby
                     }
                     cmdList[i - 1] = "";
                     cmdList[i + 1] = "";
-                    cmdList[i] = (rez.Name = Guid.NewGuid().ToString());
+                    cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
                     _variables.Add(rez);
                     cmdList.RemoveAll(j => j.Length < 1);
                 }
@@ -394,7 +415,7 @@ namespace SrbRuby
 
                     cmdList[y - 1] = "";
                     cmdList[y + 1] = "";
-                    cmdList[y] = (rez.Name = Guid.NewGuid().ToString());
+                    cmdList[y] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
                     _variables.Add(rez);
                     cmdList.RemoveAll(j => j.Length < 1);
                     y = 0;
