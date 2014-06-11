@@ -86,7 +86,7 @@ namespace SrbRuby
         public VariableItem Execute(List<VariableItem> vars)
         {
 	        if (vars != null && vars.Count > 0) 
-				foreach (var variableItem in vars)_variables.Add(variableItem);
+				foreach (var variableItem in vars)_variables.Add(variableItem,_currentFunc.Id.ToString());
 
 	        var lastItem = new VariableItem("false");
             var managerialWords = new List<string>() { "if ", "elseif ", "while ", "for " };
@@ -178,7 +178,7 @@ namespace SrbRuby
                             return new FindedItemWithParenthesisItem
                             {
                                 Name = item,
-                                Start = start,
+								Start = start + item.Length,
                                 End = GetLastFunctionParenthesis(data, start)
                             };
                         }
@@ -218,7 +218,7 @@ namespace SrbRuby
                 var first = function.Value.Start;
                 var last = function.Value.End;
                 var item = GLOBALS.Functions.FirstOrDefault(i => i.Name == function.Value.Name);
-                var funcParams = codeItem.Substring(first, last - (first-1));
+                var funcParams = codeItem.Substring(first+1, last - (first+1));
                 var funcParamsList = new List<string>(funcParams.Split(','));
                 var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
 
@@ -229,10 +229,10 @@ namespace SrbRuby
 
                 for (int i = 0; i < varListParams.Count; i++) varListParams[i].Name = item.Parameters[i];
                 var ret = (new Functions(GLOBALS.Functions.FirstOrDefault(i => i.Id == item.Id)).Execute(varListParams));
-                ret.StatementId = _statementList.Last();
-                _variables.Add(ret);
-                codeItem = codeItem.Substring(0, codeItem.IndexOf(item.Name)) + ret.Name +
-                            codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+                _variables.Add(ret,_statementList.Last());
+
+				codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
+						   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
             }
 
 
@@ -254,8 +254,7 @@ namespace SrbRuby
                 var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
 
                 var ret = _commands.Execute(item, varListParams);
-                ret.StatementId = _statementList.Last();
-                _variables.Add(ret);
+                _variables.Add(ret,_statementList.Last());
 
                 codeItem = codeItem.Substring(0, first-item.Length) + ret.Name +
                             codeItem.Substring(last + 1, codeItem.Length - (last + 1));
@@ -394,10 +393,12 @@ namespace SrbRuby
 
             int index = 0;
 
-            //for (int i = 0; i < cmdList.Count; i++)
             index = 0;
             while (index < cmdList.Count)
             {
+				if (!cmdList.Any(t => t.Equals("-") || t.Equals("+") || t.Equals("*") || t.Equals("/")))
+					break;
+
                 var i = index;
                 if (cmdList[i].Equals("-") || cmdList[i].Equals("+") ||
                     cmdList[i].Equals("*") || cmdList[i].Equals("/"))
@@ -426,8 +427,7 @@ namespace SrbRuby
                     cmdList[i - 1] = "";
                     cmdList[i + 1] = "";
                     cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
-                    rez.StatementId = _statementList.Last();
-                    _variables.Add(rez);
+                    _variables.Add(rez,_statementList.Last());
                     cmdList.RemoveAll(j => j.Length < 1);
                     index = 0;
                 }
@@ -437,10 +437,13 @@ namespace SrbRuby
             cmdList.RemoveAll(i => i.Length < 1);
 
 
-            //for (int i = 0; i < cmdList.Count; i++)
             index = 0;
             while (index < cmdList.Count)
             {
+				if (!cmdList.Any(t => t.Equals(">") || t.Equals("<") || t.Equals(">=") || 
+					t.Equals("<=") || t.Equals("==") || t.Equals("!=")))
+					break;
+
                 var i = index;
                 if (cmdList[i].Equals(">") || cmdList[i].Equals(">=") ||
                     cmdList[i].Equals("<") || cmdList[i].Equals("<=") ||
@@ -476,8 +479,7 @@ namespace SrbRuby
                     cmdList[i - 1] = "";
                     cmdList[i + 1] = "";
                     cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
-                    rez.StatementId = _statementList.Last();
-                    _variables.Add(rez);
+                    _variables.Add(rez,_statementList.Last());
                     cmdList.RemoveAll(j => j.Length < 1);
                     index = 0;
                 }
@@ -517,8 +519,7 @@ namespace SrbRuby
                     cmdList[y - 1] = "";
                     cmdList[y + 1] = "";
                     cmdList[y] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
-                    rez.StatementId = _statementList.Last();
-                    _variables.Add(rez);
+                    _variables.Add(rez,_statementList.Last());
                     cmdList.RemoveAll(j => j.Length < 1);
                     y = 0;
                 }
@@ -527,9 +528,12 @@ namespace SrbRuby
 
             cmdList.RemoveAll(i => i.Length < 1);
 
+			index = 0;
+			while (index < cmdList.Count)
+			{
+				if (!cmdList.Any(l => l.Equals("="))) break;
 
-            for (int i = 0; i < cmdList.Count; i++)
-            {
+				var i = index;
                 if (cmdList[i].Equals("="))
                 {
                     VariableItem rez;
@@ -552,10 +556,10 @@ namespace SrbRuby
                     cmdList[i - 1] = "";
                     cmdList[i + 1] = "";
                     cmdList[i] = rez.Name;
-                    rez.StatementId = _statementList.Last();
-                    _variables.Add(rez);
+					_variables.Add(rez, _statementList.Last());
                     cmdList.RemoveAll(j => j.Length < 1);
-                }
+				}
+				else index++;
             }
 
             cmdList.RemoveAll(i => i.Length < 1);
@@ -564,8 +568,7 @@ namespace SrbRuby
             if (cmdList.Count == 1)
             {
                 var ret = _variables.GetVariable(cmdList[0]);
-                ret.StatementId = _statementList.Last();
-                _variables.Add(ret);
+				_variables.Add(ret, _statementList.Last());
                 return ret;
             }
             else

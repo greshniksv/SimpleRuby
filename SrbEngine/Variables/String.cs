@@ -5,7 +5,9 @@ using System.Text;
 
 namespace SrbEngine.Variables
 {
-    class String
+    public static class String
     {
+
+
     }
 }

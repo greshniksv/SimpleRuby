@@ -22,7 +22,9 @@ namespace SrbRuby
         public string Name { get; set; }
         public VariableType Type { get; set; }
 
-        protected bool Equals(VariableItem other)
+		#region Regular
+
+		protected bool Equals(VariableItem other)
         {
             return string.Equals(StatementId, other.StatementId) &&
                 string.Equals(Name, other.Name) &&
@@ -49,12 +51,13 @@ namespace SrbRuby
                 return hashCode;
             }
         }
+		#endregion
 
-        public VariableItem(object ob, string name)
+		public VariableItem(object ob, string name)
         {
             this.Name = name;
             Set(ob);
-            if (name.Contains('@')) GLOBALS.Variables.Add(name, this);
+            
         }
 
         public VariableItem(object ob)
@@ -70,7 +73,9 @@ namespace SrbRuby
             Initialize(var);
         }
 
-        public void Initialize(string var)
+		#region Initialize.
+
+		public void Initialize(string var)
         {
             //var var = _stringVariableForInit;
             // if true|false bool
@@ -138,12 +143,12 @@ namespace SrbRuby
             throw new Exception("Can not create variable: " + var);
         }
 
+		#endregion
+
+		#region Emplements variable.
 
 
-        #region Emplements variable.
-
-
-        private object Variable { get; set; }
+		private object Variable { get; set; }
 
         public void Set(object ob)
         {
@@ -531,13 +536,13 @@ namespace SrbRuby
 
         public static VariableItem operator +(VariableItem a, VariableItem b)
         {
-            if ((a.Type != b.Type) && (a.Type == VariableType.String || a.Type == VariableType.String))
+            if ((a.Type != b.Type) && (a.Type == VariableType.String || b.Type == VariableType.String))
             {
                 if (a.Type == VariableType.String)
                     return new VariableItem("\"" + a + b + "\"");
 
                 if (b.Type == VariableType.String)
-                    return new VariableItem("\"" + b + a + "\"");
+                    return new VariableItem("\"" + a + b + "\"");
             }
 
 
@@ -657,19 +662,38 @@ namespace SrbRuby
             _variableList = new Hashtable();
         }
 
-        public void Add(VariableItem v)
-        {
-            if (_variableList.Contains(v.Name))
-            {
-                _variableList[v.Name]= v;
-            }
-            else
-            {
-                _variableList.Add(v.Name, v);
-            }
+		public void Add(VariableItem v, string statementId)
+		{
+			v.StatementId = statementId;
+
+			if (v.Name.Contains("@"))
+			{
+				if (GLOBALS.Variables.Contains(v.Name))
+					GLOBALS.Variables[v.Name] = v;
+				else
+					GLOBALS.Variables.Add(v.Name, v);
+			}
+
+			if (_variableList.Contains(v.Name)) _variableList[v.Name]= v; else _variableList.Add(v.Name, v);
         }
 
-        public void Remove(VariableItem v)
+		public VariableItem Create(string v, string name, string statementId)
+		{
+			var newvar = new VariableItem(v, name);
+			Add(newvar, statementId);
+			return newvar;
+		}
+
+		public VariableItem Create(object v, string name, string statementId)
+		{
+			var newvar = new VariableItem(v, name);
+			Add(newvar, statementId);
+			return newvar;
+		}
+
+	    
+
+	    public void Remove(VariableItem v)
         {
             if (v.Name !=null && _variableList.Contains(v.Name))
                 _variableList.Remove(v.Name);
@@ -722,152 +746,7 @@ namespace SrbRuby
                 _variableList.Remove(removeKey);
             }
         }
-
-        #region Create Variable
-        public void CreateVariable(string data, string statementId)
-        {
-            if (data.Contains("="))
-            {
-                // contains initializer
-                var dataMas = data.Split(' ', '=');
-                var dataList = new List<string>(dataMas);
-                dataList.RemoveAll(i => i.Trim().Length < 1);
-
-                var varContainer = data.Substring(data.IndexOf('=') + 1, data.Length - (data.IndexOf('=') + 1));
-                //if (dataMass.Count() != 3)  throw new Exception("Variable with initializer structure error !");
-                object variable = null;
-
-                // example: string boby = "hi"
-                if (string.Equals(dataList[0], "String", StringComparison.OrdinalIgnoreCase))
-                    variable = varContainer.Replace('"', ' ').Trim();
-
-                // example: int boby = 10
-                if (string.Equals(dataList[0], "Int", StringComparison.OrdinalIgnoreCase))
-                    variable = int.Parse(varContainer);
-
-                // example: bool boby = false
-                if (string.Equals(dataList[0], "Bool", StringComparison.OrdinalIgnoreCase))
-                    variable = Boolean.Parse(varContainer);
-
-                // example: double boby = 1.25
-                if (string.Equals(dataList[0], "Double", StringComparison.OrdinalIgnoreCase))
-                    variable = Double.Parse(varContainer, NumberStyles.Any);
-
-                // example: byte boby = 125
-                if (string.Equals(dataList[0], "Byte", StringComparison.OrdinalIgnoreCase))
-                    variable = byte.Parse(varContainer, NumberStyles.Any);
-
-                // example: char boby = 'a'
-                if (string.Equals(dataList[0], "Byte", StringComparison.OrdinalIgnoreCase))
-                    variable = char.Parse(varContainer);
-
-
-                // Example: ListString Boby = {"1","1","1","1","1"}
-                if (string.Equals(dataList[0], "ListString", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListString initializer incorrect !");
-                    variable = varContainer.Replace('{', ' ').Replace('}', ' ').Replace('"', ' ').Trim().Split(',').ToList();
-                }
-
-                // Example: ListInt Boby = {1,1,1,1,1}
-                if (string.Equals(dataList[0], "ListInt", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListInt initializer incorrect !");
-                    var buf2 = varContainer.Replace('{', ' ').Replace('}', ' ').Trim().Split(',');
-                    variable = buf2.Select(int.Parse).ToList();
-                }
-
-                // Example: ListDouble Boby = {1.56,1,1,1,1}
-                if (string.Equals(dataList[0], "ListDouble", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListDouble initializer incorrect !");
-                    var buf2 = varContainer.Replace('{', ' ').Replace('}', ' ').Trim().Split(',');
-                    variable = buf2.Select(i => double.Parse(i, NumberStyles.Any, CultureInfo.GetCultureInfo("en-US"))).ToList();
-                }
-
-                // Example: ListBool Boby = {true,false,true}
-                if (string.Equals(dataList[0], "ListBool", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListBool initializer incorrect !");
-                    var buf2 = varContainer.Replace('{', ' ').Replace('}', ' ').Trim().Split(',');
-                    variable = buf2.Select(bool.Parse).ToList();
-                }
-
-                // Example: ListByte Boby = {10,125,180}
-                if (string.Equals(dataList[0], "ListByte", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListByte initializer incorrect !");
-                    var buf2 = varContainer.Replace('{', ' ').Replace('}', ' ').Trim().Split(',');
-                    variable = buf2.Select(byte.Parse).ToList();
-                }
-
-                // Example: ListChar Boby = {'a',';','r'}
-                if (string.Equals(dataList[0], "ListChar", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!varContainer.Contains('{') || !varContainer.Contains('}'))
-                        throw new Exception("ListChar initializer incorrect !");
-                    var buf2 = varContainer.Replace('{', ' ').Replace('}', ' ').Replace('\'', ' ').Trim().Split(',');
-                    variable = buf2.Select(i => char.Parse(i.Trim())).ToList();
-                }
-
-                //dataMass: 0 - type, 1 - name, 2 - data
-                _variableList.Add(dataList[1], new VariableItem(variable, dataList[1]) { StatementId = statementId });
-
-            }
-            else
-            {
-                // contains without initializer
-                //var dataMass = data.Split(' ');
-                var dataMas = data.Split(' ', '=');
-                var dataList = new List<string>(dataMas);
-                dataList.RemoveAll(i => i.Trim().Length < 1);
-
-                if (dataList.Count() != 2) throw new Exception("Variable with initializer structure error !");
-                object variable = null;
-                Type varType = null;
-
-                // example: string boby
-                if (string.Equals(dataList[0], "String", StringComparison.OrdinalIgnoreCase))
-                    variable = string.Empty;
-
-                // example: int boby
-                if (string.Equals(dataList[0], "Int", StringComparison.OrdinalIgnoreCase))
-                    variable = new int();
-
-                // example: bool boby
-                if (string.Equals(dataList[0], "Bool", StringComparison.OrdinalIgnoreCase))
-                    variable = new bool();
-
-                // example: double boby
-                if (string.Equals(dataList[0], "Double", StringComparison.OrdinalIgnoreCase))
-                    variable = new double();
-
-                // Example: ListString Boby
-                if (string.Equals(dataList[0], "ListString", StringComparison.OrdinalIgnoreCase))
-                    variable = new List<string>();
-
-                // Example: ListString Boby
-                if (string.Equals(dataList[0], "ListInt", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!dataList[3].Contains('{') || !dataList[3].Contains('}'))
-                        throw new Exception("ListInt initializer incorrect !");
-                    var buf2 = dataList[3].Replace('{', ' ').Replace('}', ' ').Trim().Split(',');
-                    variable = buf2.Select(int.Parse).ToList();
-                }
-
-                //dataMass: 0 - type, 1 - name, 2 - data
-                _variableList.Add(dataList[1], new VariableItem(variable, dataList[1]) { StatementId = statementId });
-
-            }
-        }
-
-        #endregion
-
+		
         #region VariablesProperties
 
 
