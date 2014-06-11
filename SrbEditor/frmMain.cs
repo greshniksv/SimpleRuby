@@ -22,7 +22,12 @@ namespace SrbEditor
         
         private void frmMain_Load(object sender, EventArgs e)
         {
-	        _engine.FunctionExecuteCodeEvent += (function, command) => lbLog.Items.Insert(0,function+": "+command);
+	        _engine.FunctionExecuteCodeEvent += (function, command) =>
+	        {
+                Application.DoEvents();
+	            lbLog.Items.Insert(0, function + ": " + command);
+                Application.DoEvents();
+	        };
 
             srtbSource.ColorizeWordDic.Add("def", Color.Blue);
 			srtbSource.ColorizeWordDic.Add("if", Color.Blue);

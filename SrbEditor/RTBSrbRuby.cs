@@ -84,11 +84,11 @@ namespace SrbEditor
                 endline = s + 2;
                 while (endline++ < TextLength) if (Text[endline - 1] == '\n') break;
 
-                var line = Text.Substring(s, endline - s);
+                var line = Text.Substring(s, (endline-1) - s);
                 bool newTab = newTabWords.Any(line.Contains);
 
                 int spaceCount = 0;
-                while (s++ < TextLength) if (Text[s] != ' ') break; else spaceCount++;
+                while (s++ < TextLength-1) if (Text[s] != ' ') break; else spaceCount++;
 
                 SelectionLength = 0;
                 SelectedText = "\n" + new string(' ', spaceCount + (newTab ? 4 : 0));

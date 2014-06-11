@@ -10,27 +10,18 @@ using System.Windows.Forms;
 
 namespace SrbRuby
 {
-
-    public class FunctionItem : ICloneable
+    public static class GLOBALS
     {
-        public string Name { get; set; }
-        public List<string> Code { get; set; }
-        public Guid Id { get; set; }
-	    public List<string> Parameters { get; set; }
-	    
-	    public object Clone()
-        {
-            return new FunctionItem() { Name = this.Name, Code = new List<string>(this.Code),
-										Id = new Guid(Id.ToString()), Parameters = new List<string>(Parameters)};
-        }
+        public static Hashtable Variables { get; set; }
+        public static List<FunctionItem> Functions { get; set; }
     }
 
 
     public class ScriptEngine
     {
 
-        private readonly List<FunctionItem> _functionList = new List<FunctionItem>();
-        private Variables _globalVariables;
+        //private readonly List<FunctionItem> _functionList = new List<FunctionItem>();
+        
 
         public delegate void FunctionExecuteCode(string function, string command);
         public event FunctionExecuteCode FunctionExecuteCodeEvent = delegate { };
@@ -40,6 +31,7 @@ namespace SrbRuby
         {
             get { return new Commands(null); }
         }
+
         public string[] GetVariableTypeList()
         {
             return new Variables().GetVariableTypeList();
@@ -47,14 +39,14 @@ namespace SrbRuby
 
         public ScriptEngine()
         {
-            _functionList = new List<FunctionItem>();
-            _globalVariables = new Variables();
+            GLOBALS.Functions = new List<FunctionItem>();
+            GLOBALS.Variables = new Hashtable();
         }
 
         public void ExecuteFunction(string funcName = "main")
         {
-            using (var functions = new Functions(_functionList.FirstOrDefault(
-                i => string.Equals(i.Name, funcName, StringComparison.OrdinalIgnoreCase)), _functionList))
+            using (var functions = new Functions(GLOBALS.Functions.FirstOrDefault(
+                i => string.Equals(i.Name, funcName, StringComparison.OrdinalIgnoreCase))))
             {
                 functions.ExecuteCodeEvent += (function, command) => FunctionExecuteCodeEvent(function, command);
                 functions.Execute(null);
@@ -66,13 +58,16 @@ namespace SrbRuby
         #region Loading script
         public void LoadFromString(string data)
         {
+            GLOBALS.Functions.Clear();
+            GLOBALS.Variables.Clear();
+
             CreateFunction(data.Split('\n'));
         }
 
         public void LoadFromFile(string file)
         {
-            int ifLevel = 0;
-            var func = new List<FunctionItem>();
+            GLOBALS.Functions.Clear();
+            GLOBALS.Variables.Clear();
 
             using (TextReader reader = new StreamReader(file))
             {
@@ -82,7 +77,7 @@ namespace SrbRuby
 
         private void CreateFunction(IEnumerable<string> dataMass)
         {
-            _functionList.Clear();
+            GLOBALS.Functions.Clear();
 
             int ifLevel = 0;
             var func = new List<FunctionItem>();
@@ -120,7 +115,7 @@ namespace SrbRuby
                     if (ifLevel > 0) ifLevel--;
                     else
                     {
-                        _functionList.Add(func[func.Count - 1].Clone() as FunctionItem);
+                        GLOBALS.Functions.Add(func[func.Count - 1].Clone() as FunctionItem);
                         func.Remove(func[func.Count - 1]);
                     }
                 }

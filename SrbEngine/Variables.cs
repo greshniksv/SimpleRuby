@@ -54,12 +54,14 @@ namespace SrbRuby
         {
             this.Name = name;
             Set(ob);
+            if (name.Contains('@')) GLOBALS.Variables.Add(name, this);
         }
 
         public VariableItem(object ob)
         {
 			this.Name = Guid.NewGuid().ToString().Replace("-","");
             Set(ob);
+           
         }
 
         public VariableItem(string var)
@@ -657,7 +659,14 @@ namespace SrbRuby
 
         public void Add(VariableItem v)
         {
-            _variableList.Add(v.Name, v);
+            if (_variableList.Contains(v.Name))
+            {
+                _variableList[v.Name]= v;
+            }
+            else
+            {
+                _variableList.Add(v.Name, v);
+            }
         }
 
         public void Remove(VariableItem v)
@@ -673,15 +682,32 @@ namespace SrbRuby
 
         public VariableItem GetVariable(string name)
         {
-            var retVar = ((VariableItem)_variableList[name]);
-            if (retVar == null)
+            if (name.Contains("@"))
             {
-                return new VariableItem(name);
+                /* GLOBAL VARIABLE */
+                var retVar = ((VariableItem) GLOBALS.Variables[name]);
+                if (retVar == null)
+                {
+                    return new VariableItem(name);
+                }
+                else
+                {
+                    return retVar;
+                }
             }
             else
             {
-                return retVar;
+                var retVar = ((VariableItem)_variableList[name]);
+                if (retVar == null)
+                {
+                    return new VariableItem(name);
+                }
+                else
+                {
+                    return retVar;
+                }
             }
+           
         }
 
         public void ClearByStatementId(string id)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SrbRuby
@@ -40,7 +41,8 @@ namespace SrbRuby
             _commandList = new List<ICommand>
 			{
 				new Alert(),
-				new Confirm()
+				new Confirm(),
+                new Sleep()
 			};
 
             _commandHashTable = new Hashtable();
@@ -85,6 +87,30 @@ namespace SrbRuby
         }
 
         #region Commands
+
+        private class Sleep : ICommand
+        {
+            public string Name()
+            {
+                return "sleep";
+            }
+
+            public string Information()
+            {
+                return "Info: waiting miliseconds.\n\nExample: sleep(100)";
+            }
+
+            public VariableItem Execute(List<VariableItem> param)
+            {
+                if (param.Count() != 1) throw new Exception("sleep error! Count of params not valid! ");
+
+                Thread.Sleep((int)param[0].GetData());
+
+                return new VariableItem("true");
+            }
+
+        }
+
 
         private class Alert : ICommand
         {
