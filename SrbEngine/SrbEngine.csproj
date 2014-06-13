@@ -40,7 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\Commands.cs" />
+    <Compile Include="Classess\File.cs" />
+    <Compile Include="Commands.cs" />
+    <Compile Include="Commands\MessageBox.cs" />
+    <Compile Include="Commands\Service.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="Variables.cs" />

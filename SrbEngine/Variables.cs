@@ -12,11 +12,20 @@ namespace SrbRuby
     public enum VariableType
     {
         String, Int, Bool, Double, Char, Byte,
-        ListString, ListInt, ListBool, ListDouble, ListByte, ListChar
+        ListString, ListInt, ListBool, ListDouble, ListByte, ListChar, 
+		Nil, Other
     }
 
     public class VariableItem
     {
+
+		public class Nil
+		{
+			public override string ToString()
+			{
+				return "nil";
+			}
+		}
 
         public string StatementId { get; set; }
         public string Name { get; set; }
@@ -79,12 +88,21 @@ namespace SrbRuby
         {
             //var var = _stringVariableForInit;
             // if true|false bool
+			var = var.Trim();
+
             if (var == "true" || var == "false")
             {
                 bool b = (var == "true");
                 Set(b);
                 return;
             }
+
+			if (var.ToLower() == "nil")
+			{
+				Set(new Nil());
+				return;
+			}
+
 
             // if ' - char
             if (var.Contains("'"))

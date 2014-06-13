@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using SrbEngine.Commands;
 
 namespace SrbRuby
 {
@@ -86,91 +87,6 @@ namespace SrbRuby
                 throw new Exception("Command '" + command + "' not found !");
         }
 
-        #region Commands
-
-        private class Sleep : ICommand
-        {
-            public string Name()
-            {
-                return "sleep";
-            }
-
-            public string Information()
-            {
-                return "Info: waiting miliseconds.\n\nExample: sleep(100)";
-            }
-
-            public VariableItem Execute(List<VariableItem> param)
-            {
-                if (param.Count() != 1) throw new Exception("sleep error! Count of params not valid! ");
-
-                Thread.Sleep((int)param[0].GetData());
-
-                return new VariableItem("true");
-            }
-
-        }
-
-
-        private class Alert : ICommand
-        {
-            public string Name()
-            {
-                return "alert";
-            }
-
-            public string Information()
-            {
-                return "Info: Show a message.\n\nExample: alert(massage,caption,icon)\n\n" +
-                    "Icon: asterisk, error, exclamation, hand, information, none, question, stop, warning";
-            }
-
-			public VariableItem Execute(List<VariableItem> param)
-            {
-                if (param.Count() != 3) throw new Exception("Alert error! Count of params not valid! ");
-
-                MessageBoxIcon icon;
-                if (!Enum.TryParse(param[2].ToString(), true, out icon)) icon = MessageBoxIcon.Error;
-                MessageBox.Show(param[0].ToString(), param[1].ToString(), MessageBoxButtons.OK, (MessageBoxIcon)icon);
-
-                return new VariableItem("true");
-            }
-
-        }
-
-
-        private class Confirm : ICommand
-        {
-            public string Name()
-            {
-                return "confirm";
-            }
-
-            public string Information()
-            {
-                return "Info: Show a message.\n\nExample: confirm(massage,caption,icon,button)\n\n" +
-                    "Icon: asterisk, error, exclamation, hand, information, none, question, stop, warning\n\n" +
-                    "Button: AbortRetryIgnore,OK,OKCancel,RetryCancel,YesNo,YesNoCancel";
-            }
-
-			public VariableItem Execute(List<VariableItem> param)
-            {
-                if (param.Count() != 4) throw new Exception("Alert error! Count of params not valid! ");
-
-                MessageBoxIcon icon;
-                if (!Enum.TryParse(param[2].ToString(), true, out icon)) icon = MessageBoxIcon.Error;
-
-                MessageBoxButtons button;
-                if (!Enum.TryParse(param[3].ToString(), true, out button)) button = MessageBoxButtons.YesNo;
-
-                MessageBox.Show(param[0].ToString(), param[1].ToString(), button, icon);
-
-                return null;
-            }
-
-        }
-
-        #endregion
 
         #region Despose patternt
         public void Dispose()
