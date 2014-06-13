@@ -209,7 +209,37 @@ namespace SrbRuby
             var commandList = _commands.GetCommandNameList();
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
-            //TODO: Incorrect detect function and command
+            // Find constant string and create variable
+	        if (codeItem.Count(i => i == '\'')%2 != 0) /* IF <> \' or \" */
+	        {
+				throw new Exception("the number of characters [ ' ] must be even ");
+	        }
+
+			int lastPos = 0;
+	        int start = 0;
+
+			while ((lastPos = codeItem.IndexOf("'",lastPos))!=-1)
+			{
+				lastPos++;
+				if (start == 0) start = lastPos;
+				else
+				{
+					var s = codeItem.Substring(start, lastPos - start-1);
+					_variables.Create("\""+s+"\"", null, _statementList.Last());
+
+					//TODO: replace constant string to variale name
+ 
+					//codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
+					//	   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+
+					start = 0;
+				}
+				
+			}
+
+
+	        // Find dynamic string, process and create variable
+
 
             // Find function
             var function = FindItemWithParenthesis(codeItem, GLOBALS.Functions.Select(i => i.Name).ToList());

@@ -64,7 +64,7 @@ namespace SrbRuby
 
 		public VariableItem(object ob, string name)
         {
-            this.Name = name;
+			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
             Set(ob);
             
         }
