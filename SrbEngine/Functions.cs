@@ -225,12 +225,12 @@ namespace SrbRuby
 				else
 				{
 					var s = codeItem.Substring(start, lastPos - start-1);
-					_variables.Create("\""+s+"\"", null, _statementList.Last());
+					var v =_variables.Create("\""+s+"\"", null, _statementList.Last());
 
 					//TODO: replace constant string to variale name
- 
-					//codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
-					//	   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+
+					codeItem = codeItem.Substring(0, start-1) + v.Name +
+						   codeItem.Substring(lastPos, codeItem.Length - (lastPos));
 
 					start = 0;
 				}

@@ -190,6 +190,8 @@ namespace SrbRuby
                         break;
                     case "Byte": Type = VariableType.Byte;
                         break;
+					case "Nil": Type = VariableType.Nil;
+						break;
 
                     default:
                         throw new Exception("Not found variable type! Name:");
