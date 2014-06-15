@@ -210,24 +210,25 @@ namespace SrbRuby
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
             // Find constant string and create variable
-	        if (codeItem.Count(i => i == '\'')%2 != 0) /* IF <> \' or \" */
-	        {
-				throw new Exception("the number of characters [ ' ] must be even ");
-	        }
-
+	        
 			int lastPos = 0;
 	        int start = 0;
-
+			// TODO: recreate this while !!!
 			while ((lastPos = codeItem.IndexOf("'",lastPos))!=-1)
 			{
 				lastPos++;
+
+				if (codeItem[lastPos - 2] == '\\')
+				{
+					continue;
+				}
+
 				if (start == 0) start = lastPos;
 				else
 				{
 					var s = codeItem.Substring(start, lastPos - start-1);
+					s = s.Replace("\\'", "'").Replace("\\\"", "\"");
 					var v =_variables.Create("\""+s+"\"", null, _statementList.Last());
-
-					//TODO: replace constant string to variale name
 
 					codeItem = codeItem.Substring(0, start-1) + v.Name +
 						   codeItem.Substring(lastPos, codeItem.Length - (lastPos));
@@ -237,8 +238,59 @@ namespace SrbRuby
 				
 			}
 
+			if (start != 0)
+			{
+				throw new Exception("the number of characters [ ' ] must be even ");
+			}
+
 
 	        // Find dynamic string, process and create variable
+
+			lastPos = 0;
+			start = 0;
+			// TODO: recreate this while !!!
+			while ((lastPos = codeItem.IndexOf("\"", lastPos)) != -1)
+			{
+				lastPos++;
+
+				if (codeItem[lastPos - 2] == '\\')
+				{
+					continue;
+				}
+
+				if (start == 0) start = lastPos;
+				else
+				{
+					var s = codeItem.Substring(start, lastPos - start - 1);
+					s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+
+					// find block #{?} and process
+					if (s.Contains("#{"))
+					{
+						var startb = s.IndexOf("#{");
+						var endb = s.IndexOf("}");
+						var varData = SimlifyExpressionByParenthesis(s.Substring(startb+2, endb - (startb+2))).ToString();
+						s = s.Substring(0, startb) + varData + s.Substring(endb+1, s.Length - (endb+1));
+					}
+					var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
+
+					codeItem = codeItem.Substring(0, start - 1) + v.Name +
+						   codeItem.Substring(lastPos, codeItem.Length - (lastPos));
+
+					start = 0;
+				}
+
+			}
+
+			if (start != 0)
+			{
+				throw new Exception("the number of characters [ \" ] must be even ");
+			}
+
+
+
+
+
 
 
             // Find function

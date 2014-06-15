@@ -118,7 +118,10 @@ namespace SrbRuby
             // if " - string
             if (var.Contains("\""))
             {
-                Set(var.Replace("\"", "").Trim());
+	            var v = var.Trim();
+				if(v[0]!='"' || v[v.Length-1]!='"') throw new Exception("Error create string variable!");
+				v = v.Substring(1, v.Length - 2);
+				Set(v);
                 return;
             }
 
@@ -580,7 +583,7 @@ namespace SrbRuby
                     case VariableType.Byte:
                         return new VariableItem((byte)a.Variable + (byte)b.Variable);
                     case VariableType.String:
-                        return new VariableItem("\""+(string)a.Variable + (string)b.Variable+"\"");
+                        return new VariableItem("\""+((string)a.Variable) + ((string)b.Variable)+"\"");
                 }
             }
 
