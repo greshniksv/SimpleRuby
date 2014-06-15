@@ -612,7 +612,7 @@ namespace SrbRuby
 
         public static VariableItem operator /(VariableItem a, VariableItem b)
         {
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
+            //if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
 
             if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte)
             {
@@ -634,8 +634,10 @@ namespace SrbRuby
         public static VariableItem operator *(VariableItem a, VariableItem b)
         {
 
-            if (a.Type != b.Type || (a.Type == VariableType.String && b.Type == VariableType.Int))
-                throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
+
+
+            //if (a.Type != b.Type || (a.Type == VariableType.String && b.Type == VariableType.Int))
+            //    throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
 
             if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
                 a.Type == VariableType.String)
@@ -643,11 +645,12 @@ namespace SrbRuby
                 switch (a.Type)
                 {
                     case VariableType.Int:
-                        return new VariableItem((int)a.Variable * (int)b.Variable);
+
+						return new VariableItem(((int)a.Variable) * Convert.ToInt32(b.Variable));
                     case VariableType.Double:
-                        return new VariableItem((double)a.Variable * (double)b.Variable);
+                        return new VariableItem((double)a.Variable * Convert.ToDouble(b.Variable));
                     case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable * (byte)b.Variable);
+                        return new VariableItem((byte)a.Variable * Convert.ToByte(b.Variable));
 
                     case VariableType.String:
                         string ret = string.Empty;
