@@ -7,6 +7,8 @@ namespace SrbEngine.Variables
 {
     public static class String
     {
+       
+
 
 
     }

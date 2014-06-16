@@ -209,89 +209,7 @@ namespace SrbRuby
             var commandList = _commands.GetCommandNameList();
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
-            // Find constant string and create variable
-	        
-			int lastPos = 0;
-	        int start = 0;
-			// TODO: recreate this while !!!
-			while ((lastPos = codeItem.IndexOf("'",lastPos))!=-1)
-			{
-				lastPos++;
-
-				if (codeItem[lastPos - 2] == '\\')
-				{
-					continue;
-				}
-
-				if (start == 0) start = lastPos;
-				else
-				{
-					var s = codeItem.Substring(start, lastPos - start-1);
-					s = s.Replace("\\'", "'").Replace("\\\"", "\"");
-					var v =_variables.Create("\""+s+"\"", null, _statementList.Last());
-
-					codeItem = codeItem.Substring(0, start-1) + v.Name +
-						   codeItem.Substring(lastPos, codeItem.Length - (lastPos));
-
-					start = 0;
-				}
-				
-			}
-
-			if (start != 0)
-			{
-				throw new Exception("the number of characters [ ' ] must be even ");
-			}
-
-
-	        // Find dynamic string, process and create variable
-
-			lastPos = 0;
-			start = 0;
-			// TODO: recreate this while !!!
-			while ((lastPos = codeItem.IndexOf("\"", lastPos)) != -1)
-			{
-				lastPos++;
-
-				if (codeItem[lastPos - 2] == '\\')
-				{
-					continue;
-				}
-
-				if (start == 0) start = lastPos;
-				else
-				{
-					var s = codeItem.Substring(start, lastPos - start - 1);
-					s = s.Replace("\\'", "'").Replace("\\\"", "\"");
-
-					// find block #{?} and process
-					if (s.Contains("#{"))
-					{
-						var startb = s.IndexOf("#{");
-						var endb = s.IndexOf("}");
-						var varData = SimlifyExpressionByParenthesis(s.Substring(startb+2, endb - (startb+2))).ToString();
-						s = s.Substring(0, startb) + varData + s.Substring(endb+1, s.Length - (endb+1));
-					}
-					var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
-
-					codeItem = codeItem.Substring(0, start - 1) + v.Name +
-						   codeItem.Substring(lastPos, codeItem.Length - (lastPos));
-
-					start = 0;
-				}
-
-			}
-
-			if (start != 0)
-			{
-				throw new Exception("the number of characters [ \" ] must be even ");
-			}
-
-
-
-
-
-
+            codeItem = StringProcessor(codeItem);
 
             // Find function
             var function = FindItemWithParenthesis(codeItem, GLOBALS.Functions.Select(i => i.Name).ToList());
@@ -394,6 +312,169 @@ namespace SrbRuby
         }
 
 
+        #region StringProcessor
+        public string StringProcessor(string codeItem)
+        {
+
+            // Find constant string and create variable
+            int lastPos = 0;
+            int start = 0;
+            while ((lastPos = codeItem.IndexOf("'", lastPos)) != -1)
+            {
+                lastPos++;
+                if (codeItem[lastPos - 2] == '\\') continue;
+
+                if (start == 0) start = lastPos;
+                else
+                {
+                    var s = codeItem.Substring(start, lastPos - start - 1);
+                    s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+                    var v = _variables.Create(s, null, _statementList.Last());
+
+                    codeItem = codeItem.Substring(0, start - 1) + v.Name +
+                           codeItem.Substring(lastPos, codeItem.Length - (lastPos));
+
+                    start = 0;
+                    lastPos = 0;
+                }
+            }
+
+            if (start != 0) throw new Exception("the number of characters [ ' ] must be even ");
+
+
+            int firstPos = 0;
+            while ((firstPos = codeItem.IndexOf("%q[")) != -1)
+            {
+                int lastpos = codeItem.IndexOf("]");
+                if (lastpos == -1) throw new Exception("Can't find and of expression %q[] ");
+
+                var s = codeItem.Substring(firstPos+3, lastpos - firstPos - 3);
+                s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+                var v = _variables.Create(s, null, _statementList.Last());
+
+                codeItem = codeItem.Substring(0, firstPos) + v.Name +
+                       codeItem.Substring(lastpos, codeItem.Length - (lastpos+1));
+            }
+
+
+
+            // Find dynamic string, process and create variable
+
+            lastPos = 0;
+            start = 0;
+            while ((lastPos = codeItem.IndexOf("\"", lastPos)) != -1)
+            {
+                lastPos++;
+                if (codeItem[lastPos - 2] == '\\') continue;
+
+                if (start == 0) start = lastPos;
+                else
+                {
+                    var s = codeItem.Substring(start, lastPos - start - 1);
+                    s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+
+                    // find block #{?} and process
+                    while (s.Contains("#{"))
+                    {
+                        var startb = s.IndexOf("#{");
+                        var endb = s.IndexOf("}");
+                        var varData = SimlifyExpressionByParenthesis(s.Substring(startb + 2, endb - (startb + 2))).ToString();
+                        s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
+                    }
+                    var v = _variables.Create(s, null, _statementList.Last());
+
+                    codeItem = codeItem.Substring(0, start - 1) + v.Name +
+                           codeItem.Substring(lastPos, codeItem.Length - (lastPos));
+
+                    start = 0;
+                    lastPos = 0;
+                }
+
+            }
+
+            if (start != 0) throw new Exception("the number of characters [ \" ] must be even ");
+
+
+
+            // %Q[] and %q[]
+            firstPos = 0;
+            while ((firstPos = codeItem.IndexOf("%Q[")) != -1 || 
+                (firstPos = codeItem.IndexOf("%[")) != -1)
+            {
+                var startp = (codeItem[firstPos+1] == 'Q' ? 3 : 2);
+                int lastpos = codeItem.IndexOf("]");
+                if (lastpos == -1) throw new Exception("Can't find and of expression %Q[] or %[] ");
+
+                var s = codeItem.Substring(firstPos + startp, lastpos - firstPos - startp);
+                s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+
+                while (s.Contains("#{"))
+                {
+                    var startb = s.IndexOf("#{");
+                    var endb = s.IndexOf("}");
+                    var varData = SimlifyExpressionByParenthesis(s.Substring(startb + 2, endb - (startb + 2))).ToString();
+                    s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
+                }
+
+                var v = _variables.Create(s, null, _statementList.Last());
+
+                codeItem = codeItem.Substring(0, firstPos) + v.Name +
+                       codeItem.Substring(lastpos, codeItem.Length - (lastpos + 1));
+            }
+
+
+
+
+
+
+
+
+            // %Q{} and %q{}
+            firstPos = 0;
+            while ((firstPos = codeItem.IndexOf("%Q{")) != -1 ||
+                (firstPos = codeItem.IndexOf("%{")) != -1)
+            {
+                var startp = (codeItem[firstPos+1] == 'Q' ? 3 : 2);
+
+                var brace = 0;
+                var lastpos = 0;
+
+                // find end
+                for (int i = firstPos; i < codeItem.Length; i++)
+                {
+                    if (codeItem[i] == '{') brace++;
+                    if (codeItem[i] == '}' && brace == 1)
+                    {
+                        lastpos = i; break;
+                    }
+                    if (codeItem[i] == '}') brace--; 
+                }
+
+                if (lastpos == -1) throw new Exception("Can't find and of expression %Q{} or %{} ");
+
+                var s = codeItem.Substring(firstPos + startp, lastpos - firstPos - startp);
+                s = s.Replace("\\'", "'").Replace("\\\"", "\"");
+
+                while (s.Contains("#{"))
+                {
+                    var startb = s.IndexOf("#{");
+                    var endb = s.IndexOf("}");
+                    var varData = SimlifyExpressionByParenthesis(s.Substring(startb + 2, endb - (startb + 2))).ToString();
+                    s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
+                }
+
+                var v = _variables.Create(s, null, _statementList.Last());
+
+                codeItem = codeItem.Substring(0, firstPos) + v.Name +
+                       codeItem.Substring(lastpos, codeItem.Length - (lastpos + 1));
+            }
+
+
+            return codeItem;
+        }
+
+        #endregion
+
         #region Work with expression
 
         private List<int> GetDeepExpList(List<string> exp)
@@ -445,7 +526,7 @@ namespace SrbRuby
             lastItem = -1;
             while ((lastItem = codeItem.IndexOf('<', lastItem + 1)) != -1)
             {
-                if (codeItem[lastItem + 1] != '=')
+                if (codeItem[lastItem + 1] != '=' && codeItem[lastItem + 1] != '<' && codeItem[lastItem - 1] != '<')
                 {
                     codeItem = codeItem.Substring(0, lastItem) + " < " +
                                codeItem.Substring(lastItem + 1, codeItem.Length - (lastItem + 1));
@@ -453,7 +534,13 @@ namespace SrbRuby
                 }
             }
 
-
+            lastItem = -1;
+            while ((lastItem = codeItem.IndexOf("<<", lastItem + 1)) != -1)
+            {
+                codeItem = codeItem.Substring(0, lastItem) + " << " +
+                           codeItem.Substring(lastItem + 2, codeItem.Length - (lastItem + 2));
+                lastItem += 2;
+            }
 
             var cmdList = new List<string>(codeItem.Split(' '));
             List<int> buf;
@@ -510,6 +597,44 @@ namespace SrbRuby
                     cmdList[i + 1] = "";
                     cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
                     _variables.Add(rez,_statementList.Last());
+                    cmdList.RemoveAll(j => j.Length < 1);
+                    index = 0;
+                }
+                else index++;
+            }
+
+            cmdList.RemoveAll(i => i.Length < 1);
+
+
+            index = 0;
+            while (index < cmdList.Count)
+            {
+                if (!cmdList.Any(t => t.Equals(">>") || t.Equals("<<") ))
+                    break;
+
+                var i = index;
+                if (cmdList[i].Equals(">>") || cmdList[i].Equals("<<"))
+                {
+                    var o1 = _variables.GetVariable(cmdList[i - 1]);
+                    var o2 = _variables.GetVariable(cmdList[i + 1]);
+                    VariableItem rez;
+
+                    switch (cmdList[i])
+                    {
+                        case ">>":
+                            //rez = new VariableItem(o1 >> o2);
+                            throw new Exception("ERROR :)");
+                            break;
+                        case "<<":
+                            rez = o1 + o2;
+                            break;
+                        default:
+                            throw new Exception("MAGIC!");
+                    }
+                    cmdList[i - 1] = "";
+                    cmdList[i + 1] = "";
+                    cmdList[i] = (rez.Name = Guid.NewGuid().ToString().Replace("-", ""));
+                    _variables.Add(rez, _statementList.Last());
                     cmdList.RemoveAll(j => j.Length < 1);
                     index = 0;
                 }

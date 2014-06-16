@@ -619,11 +619,11 @@ namespace SrbRuby
                 switch (a.Type)
                 {
                     case VariableType.Int:
-                        return new VariableItem((int)a.Variable / (int)b.Variable);
+                        return new VariableItem((int)a.Variable / Convert.ToInt32(b.Variable));
                     case VariableType.Double:
-                        return new VariableItem((double)a.Variable / (double)b.Variable);
+                        return new VariableItem((double)a.Variable / Convert.ToDouble(b.Variable));
                     case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable / (byte)b.Variable);
+                        return new VariableItem((byte)a.Variable / Convert.ToByte(b.Variable));
                 }
             }
 
@@ -633,8 +633,6 @@ namespace SrbRuby
 
         public static VariableItem operator *(VariableItem a, VariableItem b)
         {
-
-
 
             //if (a.Type != b.Type || (a.Type == VariableType.String && b.Type == VariableType.Int))
             //    throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
@@ -654,14 +652,13 @@ namespace SrbRuby
 
                     case VariableType.String:
                         string ret = string.Empty;
-                        for (int i = 0; i < (int)b.Variable; i++) ret += (string)a.Variable;
-                        return new VariableItem(ret);
+                        for (int i = 0; i < Convert.ToInt32(b.Variable); i++) ret += (string)a.Variable;
+                        return new VariableItem("\"" + ret + "\"");
                 }
             }
 
             throw new Exception("Unary operation (*) return null !");
         }
-
 
         #endregion
 
