@@ -43,7 +43,8 @@ namespace SrbRuby
 			{
 				new Alert(),
 				new Confirm(),
-                new Sleep()
+                new Sleep(),
+                new Garbagefuscator()
 			};
 
             _commandHashTable = new Hashtable();

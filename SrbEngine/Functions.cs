@@ -302,13 +302,6 @@ namespace SrbRuby
                     _jumpList.Add(pos, elseBlock != -1 ? elseBlock : endBlock);
                 }
             }
-
-
-
-
-
-
-
         }
 
 
@@ -421,12 +414,6 @@ namespace SrbRuby
                 codeItem = codeItem.Substring(0, firstPos) + v.Name +
                        codeItem.Substring(lastpos, codeItem.Length - (lastpos + 1));
             }
-
-
-
-
-
-
 
 
             // %Q{} and %q{}

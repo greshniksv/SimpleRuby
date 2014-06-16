@@ -42,18 +42,19 @@
   <ItemGroup>
     <Compile Include="Classess\File.cs" />
     <Compile Include="Commands.cs" />
+    <Compile Include="Commands\Crypting.cs" />
     <Compile Include="Commands\MessageBox.cs" />
     <Compile Include="Commands\Service.cs" />
     <Compile Include="Functions.cs" />
+    <Compile Include="Libraries\GarbageFuscator.cs" />
+    <Compile Include="Libraries\Hash.cs" />
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="Variables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Variables\Int.cs" />
     <Compile Include="Variables\String.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Libraries\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
