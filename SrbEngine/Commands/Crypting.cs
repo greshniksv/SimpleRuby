@@ -26,7 +26,8 @@ namespace SrbEngine.Commands
 
             var fuscator = new GarbageFuscator();
             var ret =fuscator.Crypt((string) param[0].GetData(), (string) param[1].GetData());
-            return new VariableItem(ret);
+			ret = fuscator.Decrypt((string)param[0].GetData(), ret);
+            return new VariableItem((object)ret);
         }
 
     }
