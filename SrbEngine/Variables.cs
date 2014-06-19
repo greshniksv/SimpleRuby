@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
+using SrbEngine;
 
 namespace SrbRuby
 {
@@ -13,7 +14,7 @@ namespace SrbRuby
     {
         String, Int, Bool, Double, Char, Byte,
         ListString, ListInt, ListBool, ListDouble, ListByte, ListChar, 
-		Nil, Other
+		Nil, Class, Other
     }
 
     public class VariableItem
@@ -30,8 +31,13 @@ namespace SrbRuby
         public string StatementId { get; set; }
         public string Name { get; set; }
         public VariableType Type { get; set; }
+        private object Variable { get; set; }
 
-		#region Regular
+        public object Data {
+            get { return Variable; }
+        }
+
+        #region Regular
 
 		protected bool Equals(VariableItem other)
         {
@@ -66,7 +72,6 @@ namespace SrbRuby
         {
 			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
             Set(ob);
-            
         }
 
         public VariableItem(object ob)
@@ -85,11 +90,15 @@ namespace SrbRuby
 
 		public void Initialize(string var)
         {
-            //var var = _stringVariableForInit;
-            // if true|false bool
 			var = var.Trim();
 
-            if (var == "true" || var == "false")
+		    if (var.Contains(".new"))
+		    {
+		        Set(GLOBALS.ClassesList.Get(var.Replace(".new", "")));
+                return;
+		    }
+
+		    if (var == "true" || var == "false")
             {
                 bool b = (var == "true");
                 Set(b);
@@ -101,7 +110,6 @@ namespace SrbRuby
 				Set(new Nil());
 				return;
 			}
-
 
             // if ' - char
             if (var.Contains("'"))
@@ -167,14 +175,17 @@ namespace SrbRuby
 
 		#region Emplements variable.
 
-
-		private object Variable { get; set; }
-
         public void Set(object ob)
         {
             var typeSplited = new List<string>(ob.GetType().AssemblyQualifiedName.Split('[', ','));
             typeSplited.RemoveAll(i => i.Trim().Length < 1);
             Variable = ob;
+
+            if (ob is IClass)
+            {
+                Type = VariableType.Class;
+                return;
+            }
 
             if (!ob.GetType().Name.Contains("List"))
             {
@@ -728,6 +739,32 @@ namespace SrbRuby
 
         public VariableItem GetVariable(string name)
         {
+            // Check for request data from cass
+            if (name.Contains("."))
+            {
+                if (name.Contains(".new"))
+                {
+                    return new VariableItem(name);
+                }
+                else
+                {
+                    var classItem = ((VariableItem)(name.Contains("@") ? GLOBALS.Variables[name] : _variableList[name])).Data;
+
+                    if (name.Contains("("))
+                    {
+                        var functionName = name.Substring(name.IndexOf('.'), name.IndexOf('(') - name.IndexOf('.'));
+                        var paramList = name.Substring(name.IndexOf('('), name.IndexOf('(') - name.IndexOf(')')).Split(',');
+                        var paramVariables = paramList.Select(GetVariable).ToList();
+                        ((IClass)classItem).Function(functionName, paramVariables);
+                    }
+                    else
+                    {
+                        ((IClass)classItem).Properties(name.Replace(((IClass)classItem).Name() + ".", ""));
+                    }
+                }
+            }
+
+
             if (name.Contains("@"))
             {
                 /* GLOBAL VARIABLE */

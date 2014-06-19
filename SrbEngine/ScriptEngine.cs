@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows.Forms;
+using SrbEngine;
 
 namespace SrbRuby
 {
@@ -14,6 +15,7 @@ namespace SrbRuby
     {
         public static Hashtable Variables { get; set; }
         public static List<FunctionItem> Functions { get; set; }
+        public static Classes ClassesList { get; set; }
     }
 
 
@@ -29,7 +31,7 @@ namespace SrbRuby
 
         public Commands Command
         {
-            get { return new Commands(null); }
+            get { return new Commands(); }
         }
 
         public string[] GetVariableTypeList()
@@ -41,6 +43,7 @@ namespace SrbRuby
         {
             GLOBALS.Functions = new List<FunctionItem>();
             GLOBALS.Variables = new Hashtable();
+            GLOBALS.ClassesList = new Classes();
         }
 
         public void ExecuteFunction(string funcName = "main")

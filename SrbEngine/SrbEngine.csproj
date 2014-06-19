@@ -40,7 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classess\File.cs" />
+    <Compile Include="Classes.cs" />
+    <Compile Include="Classes\File.cs" />
+    <Compile Include="Classes\GarbageFuscator.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Commands\Crypting.cs" />
     <Compile Include="Commands\MessageBox.cs" />

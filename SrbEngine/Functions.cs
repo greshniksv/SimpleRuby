@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using SrbEngine;
 
 namespace SrbRuby
 {
@@ -46,7 +47,7 @@ namespace SrbRuby
         {
             _variables = new Variables();
             _currentFunc = function;
-            _commands = new Commands(_variables);
+            _commands = new Commands();
             _jumpList = new Hashtable();
         }
 

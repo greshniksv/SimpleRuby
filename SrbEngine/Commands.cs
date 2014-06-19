@@ -32,12 +32,9 @@ namespace SrbRuby
 
         private List<ICommand> _commandList;
         private Hashtable _commandHashTable;
-        private Variables _variables;
 
-        public Commands(Variables variables)
+        public Commands()
         {
-            _variables = variables;
-
             // Add command to list
             _commandList = new List<ICommand>
 			{
@@ -52,7 +49,6 @@ namespace SrbRuby
             {
                 _commandHashTable.Add(command.Name(), command);
             }
-
         }
 
         public IEnumerable<string> GetCommandNameList()
@@ -63,20 +59,6 @@ namespace SrbRuby
         public Hashtable GetCommandHashTable()
         {
             return _commandHashTable;
-        }
-
-        private List<VariableItem> GetParamsFromCommand(string command)
-        {
-            var prmList = command.Substring(command.IndexOf('(') + 1, command.IndexOf(')') - (command.IndexOf('(') + 1)).Trim().Split(',');
-            return prmList.Select(s => _variables.GetVariable(s)).ToList();
-        }
-
-        private string GetCommandName(string command)
-        {
-            if (command.IndexOf("(", System.StringComparison.Ordinal) == -1)
-                throw new Exception("Command does not have '(' !");
-
-            return command.Substring(0, command.IndexOf("(", System.StringComparison.Ordinal)).Trim();
         }
 
 		public VariableItem Execute(string command, List<VariableItem> param)
