@@ -739,30 +739,31 @@ namespace SrbRuby
 
         public VariableItem GetVariable(string name)
         {
-            // Check for request data from cass
-            if (name.Contains("."))
-            {
-                if (name.Contains(".new"))
-                {
-                    return new VariableItem(name);
-                }
-                else
-                {
-                    var classItem = ((VariableItem)(name.Contains("@") ? GLOBALS.Variables[name] : _variableList[name])).Data;
 
-                    if (name.Contains("("))
-                    {
-                        var functionName = name.Substring(name.IndexOf('.'), name.IndexOf('(') - name.IndexOf('.'));
-                        var paramList = name.Substring(name.IndexOf('('), name.IndexOf('(') - name.IndexOf(')')).Split(',');
-                        var paramVariables = paramList.Select(GetVariable).ToList();
-                        ((IClass)classItem).Function(functionName, paramVariables);
-                    }
-                    else
-                    {
-                        ((IClass)classItem).Properties(name.Replace(((IClass)classItem).Name() + ".", ""));
-                    }
-                }
-            }
+			// Check for request data from cass
+			if (name.Contains("."))
+			{
+				if (name.Contains(".new"))
+				{
+					return new VariableItem(name);
+				}
+				else
+				{
+					var classItem = ((VariableItem)(name.Contains("@") ? GLOBALS.Variables[name] : _variableList[name])).Data;
+
+					if (name.Contains("("))
+					{
+						var functionName = name.Substring(name.IndexOf('.'), name.IndexOf('(') - name.IndexOf('.'));
+						var paramList = name.Substring(name.IndexOf('('), name.IndexOf('(') - name.IndexOf(')')).Split(',');
+						var paramVariables = paramList.Select(GetVariable).ToList();
+						((IClass)classItem).Function(functionName, paramVariables);
+					}
+					else
+					{
+						((IClass)classItem).Properties(name.Replace(((IClass)classItem).Name() + ".", ""));
+					}
+				}
+			}
 
 
             if (name.Contains("@"))

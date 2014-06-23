@@ -212,6 +212,7 @@ namespace SrbRuby
 
             codeItem = StringProcessor(codeItem);
 
+
             // Find function
             var function = FindItemWithParenthesis(codeItem, GLOBALS.Functions.Select(i => i.Name).ToList());
             if (function != null)
@@ -237,12 +238,6 @@ namespace SrbRuby
             }
 
 
-
-
-
-
-
-
             // Find command
             var command = FindItemWithParenthesis(codeItem, _commands.GetCommandNameList());
             if (command != null)
@@ -260,8 +255,19 @@ namespace SrbRuby
                 codeItem = codeItem.Substring(0, first-item.Length) + ret.Name +
                             codeItem.Substring(last + 1, codeItem.Length - (last + 1));
             }
-            
-            // Simplify calculate block
+
+
+			// find class
+	        if (codeItem.Contains('.') && !codeItem.Contains(".new"))
+	        {
+
+
+
+	        }
+
+
+
+	        // Simplify calculate block
 			return SimlifyExpressionByParenthesis(codeItem);
         }
 
