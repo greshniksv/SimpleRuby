@@ -30,16 +30,16 @@ namespace SrbEngine.Class
         {
             if (name == "Crypt")
             {
-                if (param.Count == 2) throw new Exception("function Crypt take 2 parameters!");
+                if (param.Count != 2) throw new Exception("function Crypt take 2 parameters!");
 
-                return new VariableItem((object) _gb.Crypt((string)param[1].Data, (string)param[2].Data));
+                return new VariableItem((object) _gb.Crypt((string)param[0].Data, (string)param[1].Data));
             }
 
             if (name == "Decrypt")
             {
-                if (param.Count == 2) throw new Exception("function Decrypt take 2 parameters!");
+                if (param.Count != 2) throw new Exception("function Decrypt take 2 parameters!");
 
-                return new VariableItem((object)_gb.Decrypt((string)param[1].Data, (string)param[2].Data));
+                return new VariableItem((object)_gb.Decrypt((string)param[0].Data, (string)param[1].Data));
             }
 
             return new VariableItem("nil");

@@ -211,8 +211,10 @@ namespace SrbRuby
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
             codeItem = StringProcessor(codeItem);
+			codeItem = FindFunctionClassModule(codeItem);
 
 
+			/*
             // Find function
             var function = FindItemWithParenthesis(codeItem, GLOBALS.Functions.Select(i => i.Name).ToList());
             if (function != null)
@@ -264,6 +266,7 @@ namespace SrbRuby
 
 
 	        }
+			  */
 
 
 
@@ -272,9 +275,122 @@ namespace SrbRuby
         }
 
 
+		private string FindFunctionClassModule(string codeItem)
+	    {
+			//string codeItem = _currentFunc.Code[pos];
+		    const string fcmChars = ".qwertyuiopasdfghjklzxcvbnm1234567890:";
+
+			// find last fcm (FunctionClassModule)
+			int endFCM = -1;
+		    int endFCMName = -1;
+			int pos = -1;
+			while ((pos = codeItem.IndexOf('(', pos + 1)) != -1) { endFCMName = pos; }
+			if (endFCMName == -1) return codeItem;
+
+			// find end fcm
+			int parenthesis = 0;
+			for (int i = endFCMName; i < codeItem.Length; i++)
+			{
+				if (codeItem[i] == '(') parenthesis++;
+				if (codeItem[i] == ')')
+				{
+					parenthesis--;
+					if (parenthesis == 0)
+					{
+						endFCM = i;
+						break;
+					}
+				}
+			}
 
 
-        private void CalculateJumpOper(int pos, ref List<string> statementList)
+
+			// find first fcm
+			int firstFCM = endFCMName - 1;
+			while (fcmChars.Any(i => i == char.ToLower(codeItem[firstFCM]))) { if (firstFCM>0) firstFCM--; else break; }
+
+		    if (endFCM - firstFCM > 1)
+		    {
+				// class contains '.'
+				// module contains '::'
+
+				var fcm = codeItem.Substring(firstFCM, endFCMName - firstFCM);
+
+			    if (fcm.Contains("::"))
+			    {
+					// module
+
+
+
+			    }
+				else if (fcm.Contains("."))
+				{
+					// class
+					
+					var first = firstFCM;
+					var last = endFCM;
+					var v =  _variables.GetVariable(codeItem.Substring(first + 1, last - first));
+					v.StatementId = _statementList.Last();
+					codeItem = codeItem.Substring(0, first) + v.Name +
+								   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+				}
+				else
+				{
+
+					// function
+
+					if (GLOBALS.Functions.Any(i => i.Name == fcm))
+					{
+						var first = endFCMName;
+						var last = endFCM;
+						var item = GLOBALS.Functions.FirstOrDefault(i => i.Name == fcm);
+						var funcParams = codeItem.Substring(first + 1, last - (first + 1));
+						var funcParamsList = new List<string>(funcParams.Split(','));
+						var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
+
+						if (varListParams.Count != item.Parameters.Count)
+						{
+							throw new Exception("Not match parameters for function: " + item.Name);
+						}
+
+						for (int i = 0; i < varListParams.Count; i++) varListParams[i].Name = item.Parameters[i];
+						var ret = (new Functions(GLOBALS.Functions.FirstOrDefault(i => i.Id == item.Id)).Execute(varListParams));
+						_variables.Add(ret, _statementList.Last());
+
+						codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
+						           codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+					}
+
+
+
+					// command
+
+					if (_commands.GetCommandNameList().Any(i => i == fcm.ToLower()))
+					{
+						var first = endFCMName;
+						var last = endFCM;
+						var item = fcm;
+						var funcParams = codeItem.Substring(first + 1, last - (first + 1));
+						var funcParamsList = new List<string>(funcParams.Split(','));
+						var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
+
+						var ret = _commands.Execute(item, varListParams);
+						_variables.Add(ret, _statementList.Last());
+
+						codeItem = codeItem.Substring(0, first - item.Length) + ret.Name +
+						           codeItem.Substring(last + 1, codeItem.Length - (last + 1));
+					}
+				}
+		    }
+
+			return codeItem;
+	    }
+
+
+
+
+
+	    private void CalculateJumpOper(int pos, ref List<string> statementList)
         {
 
             var codeItem = _currentFunc.Code[pos];

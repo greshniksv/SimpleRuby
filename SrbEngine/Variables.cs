@@ -749,18 +749,19 @@ namespace SrbRuby
 				}
 				else
 				{
-					var classItem = ((VariableItem)(name.Contains("@") ? GLOBALS.Variables[name] : _variableList[name])).Data;
+					var varName = name.Substring(0, name.IndexOf('.'));
+					var classItem = ((VariableItem)(name.Contains("@") ? GLOBALS.Variables[varName] : _variableList[varName])).Data;
 
 					if (name.Contains("("))
 					{
-						var functionName = name.Substring(name.IndexOf('.'), name.IndexOf('(') - name.IndexOf('.'));
-						var paramList = name.Substring(name.IndexOf('('), name.IndexOf('(') - name.IndexOf(')')).Split(',');
+						var functionName = name.Substring(name.IndexOf('.')+1, name.IndexOf('(') - (name.IndexOf('.')+1));
+						var paramList = name.Substring(name.IndexOf('(')+1, name.IndexOf(')') - (name.IndexOf('(')+1)).Split(',');
 						var paramVariables = paramList.Select(GetVariable).ToList();
-						((IClass)classItem).Function(functionName, paramVariables);
+						return ((IClass)classItem).Function(functionName, paramVariables);
 					}
 					else
 					{
-						((IClass)classItem).Properties(name.Replace(((IClass)classItem).Name() + ".", ""));
+						return ((IClass)classItem).Properties(name.Replace(((IClass)classItem).Name() + ".", ""));
 					}
 				}
 			}

@@ -99,7 +99,8 @@ namespace SrbRuby
 						Code = new List<string>(), Id = Guid.NewGuid(),Parameters = param});
                 }
 
-                if (manageWords.Any(buf.Contains))
+				// TODO: Detect manageword in a string. Fix this !
+				if (manageWords.Any(i => buf.Contains(i+" ")))
                 {
                     ifLevel++;
                 }
