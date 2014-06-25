@@ -38,13 +38,15 @@ namespace SrbRuby
         private Variables _variables;
         private Hashtable _jumpList;
         private List<string> _statementList;
+        private List<string> _yieldList;
 
         public delegate void ExecuteCode(string function, string command);
         public event ExecuteCode ExecuteCodeEvent = delegate { };
 
 
-        public Functions(FunctionItem function)
+        public Functions(FunctionItem function, List<string> yieldList=null)
         {
+            _yieldList = yieldList;
             _variables = new Variables();
             _currentFunc = function;
             _commands = new Commands();

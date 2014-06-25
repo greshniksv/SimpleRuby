@@ -50,6 +50,7 @@
     <Compile Include="Functions.cs" />
     <Compile Include="Libraries\GarbageFuscator.cs" />
     <Compile Include="Libraries\Hash.cs" />
+    <Compile Include="Module.cs" />
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="Variables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
