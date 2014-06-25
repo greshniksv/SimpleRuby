@@ -214,62 +214,6 @@ namespace SrbRuby
 			codeItem = FindFunctionClassModule(codeItem);
 
 
-			/*
-            // Find function
-            var function = FindItemWithParenthesis(codeItem, GLOBALS.Functions.Select(i => i.Name).ToList());
-            if (function != null)
-            {
-                var first = function.Value.Start;
-                var last = function.Value.End;
-                var item = GLOBALS.Functions.FirstOrDefault(i => i.Name == function.Value.Name);
-                var funcParams = codeItem.Substring(first+1, last - (first+1));
-                var funcParamsList = new List<string>(funcParams.Split(','));
-                var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
-
-                if (varListParams.Count != item.Parameters.Count)
-                {
-                    throw new Exception("Not match parameters for function: " + item.Name);
-                }
-
-                for (int i = 0; i < varListParams.Count; i++) varListParams[i].Name = item.Parameters[i];
-                var ret = (new Functions(GLOBALS.Functions.FirstOrDefault(i => i.Id == item.Id)).Execute(varListParams));
-                _variables.Add(ret,_statementList.Last());
-
-				codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
-						   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
-            }
-
-
-            // Find command
-            var command = FindItemWithParenthesis(codeItem, _commands.GetCommandNameList());
-            if (command != null)
-            {
-                var first = command.Value.Start;
-                var last = command.Value.End;
-                var item = command.Value.Name;
-                var funcParams = codeItem.Substring(first+1, last - (first+1));
-                var funcParamsList = new List<string>(funcParams.Split(','));
-                var varListParams = funcParamsList.Select(SimlifyExpressionByParenthesis).ToList();
-
-                var ret = _commands.Execute(item, varListParams);
-                _variables.Add(ret,_statementList.Last());
-
-                codeItem = codeItem.Substring(0, first-item.Length) + ret.Name +
-                            codeItem.Substring(last + 1, codeItem.Length - (last + 1));
-            }
-
-
-			// find class
-	        if (codeItem.Contains('.') && !codeItem.Contains(".new"))
-	        {
-
-
-
-	        }
-			  */
-
-
-
 	        // Simplify calculate block
 			return SimlifyExpressionByParenthesis(codeItem);
         }
@@ -326,11 +270,10 @@ namespace SrbRuby
 				else if (fcm.Contains("."))
 				{
 					// class
-					
 					var first = firstFCM;
 					var last = endFCM;
 					var v =  _variables.GetVariable(codeItem.Substring(first + 1, last - first));
-					v.StatementId = _statementList.Last();
+				    _variables.Add(v,_statementList.Last());
 					codeItem = codeItem.Substring(0, first) + v.Name +
 								   codeItem.Substring(last + 1, codeItem.Length - (last + 1));
 				}
