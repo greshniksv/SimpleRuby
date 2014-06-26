@@ -34,11 +34,6 @@ namespace SrbRuby
             get { return new Commands(); }
         }
 
-        public string[] GetVariableTypeList()
-        {
-            return new Variables().GetVariableTypeList();
-        }
-
         public ScriptEngine()
         {
             GLOBALS.Functions = new List<FunctionItem>();

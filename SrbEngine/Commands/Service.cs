@@ -23,7 +23,7 @@ namespace SrbEngine.Commands
 		{
 			if (param.Count() != 1) throw new Exception("sleep error! Count of params not valid! ");
 
-			Thread.Sleep((int)param[0].GetData());
+			Thread.Sleep((int)param[0].Data);
 
 			return new VariableItem("nil");
 		}

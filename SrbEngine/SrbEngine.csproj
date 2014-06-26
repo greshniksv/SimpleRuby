@@ -41,8 +41,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes.cs" />
-    <Compile Include="Classes\File.cs" />
-    <Compile Include="Classes\GarbageFuscator.cs" />
+    <Compile Include="Class\File.cs" />
+    <Compile Include="Class\GarbageFuscator.cs" />
+    <Compile Include="Class\Variables\Bool.cs" />
+    <Compile Include="Class\Variables\Byte.cs" />
+    <Compile Include="Class\Variables\Char.cs" />
+    <Compile Include="Class\Variables\Double.cs" />
+    <Compile Include="Class\Variables\Nil.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Commands\Crypting.cs" />
     <Compile Include="Commands\MessageBox.cs" />
@@ -54,8 +59,8 @@
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="Variables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Variables\Int.cs" />
-    <Compile Include="Variables\String.cs" />
+    <Compile Include="Class\Variables\Int.cs" />
+    <Compile Include="Class\Variables\String.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

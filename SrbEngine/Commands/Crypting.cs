@@ -25,8 +25,8 @@ namespace SrbEngine.Commands
             if (param.Count() != 2) throw new Exception("sleep error! Count of params not valid! ");
 
             var fuscator = new GarbageFuscator();
-            var ret =fuscator.Crypt((string) param[0].GetData(), (string) param[1].GetData());
-			ret = fuscator.Decrypt((string)param[0].GetData(), ret);
+			var ret = fuscator.Crypt((string)param[0].Data, (string)param[1].Data);
+			ret = fuscator.Decrypt((string)param[0].Data, ret);
             return new VariableItem((object)ret);
         }
 

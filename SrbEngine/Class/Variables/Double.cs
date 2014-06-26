@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SrbEngine.Variables
+namespace SrbEngine.Class.Variables
 {
-    public static class String
-    {
-       
-
-
-
-    }
+	class Double
+	{
+	}
 }

@@ -208,7 +208,7 @@ namespace SrbRuby
         private VariableItem Simplification(int pos)
         {
             string codeItem = _currentFunc.Code[pos];
-            var variableTypeList = _variables.GetVariableTypeList();
+            //var variableTypeList = _variables.GetVariableTypeList();
             var commandList = _commands.GetCommandNameList();
             var calculateElements = new List<string>() { "=", ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*" };
 
@@ -807,14 +807,14 @@ namespace SrbRuby
                     {
                         var o1 = _variables.GetVariable(cmdList[i - 1]);
                         var o2 = _variables.GetVariable(cmdList[i + 1]);
-                        rez = new VariableItem(o2.GetData(),o1.Name);
+                        rez = new VariableItem(o2,o1.Name);
                         _variables.Remove(o2);
                         _variables.Remove(o1);
                     }
                     else
                     {
                         var o2 = _variables.GetVariable(cmdList[i + 1]);
-                        rez = new VariableItem(o2.GetData(), cmdList[i - 1]);
+						rez = new VariableItem(o2, cmdList[i - 1]);
                         _variables.Remove(o2);
                     }
                    
@@ -838,7 +838,7 @@ namespace SrbRuby
             }
             else
             {
-                //throw new Exception("BUG!");
+                throw new Exception("BUG!");
             }
         }
 

@@ -8,7 +8,12 @@ namespace SrbEngine.Class
 {
 	class File : IClass
 	{
-	    public string Name()
+		public object Data()
+		{
+			throw new NotImplementedException();
+		}
+
+		public string Name()
 	    {
 	        return "File";
 	    }
@@ -18,7 +23,12 @@ namespace SrbEngine.Class
 	        throw new NotImplementedException();
 	    }
 
-	    public VariableItem Function(string name, List<VariableItem> param)
+		public object Parse(string s)
+		{
+			throw new NotImplementedException();
+		}
+
+		public VariableItem Function(string name, List<VariableItem> param)
 	    {
 	        throw new NotImplementedException();
 	    }
@@ -28,14 +38,9 @@ namespace SrbEngine.Class
 	        throw new NotImplementedException();
 	    }
 
-	    public bool OperatorB(string type, object o1, object o2)
-	    {
-	        throw new NotImplementedException();
-	    }
-
-	    public object OperatorD(string type, object o1, object o2)
-	    {
-	        throw new NotImplementedException();
-	    }
+		public object Operator(string type, object o)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

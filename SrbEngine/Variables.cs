@@ -7,34 +7,19 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using SrbEngine;
+using SrbEngine.Class.Variables;
 
 namespace SrbRuby
 {
-    public enum VariableType
-    {
-        String, Int, Bool, Double, Char, Byte,
-        ListString, ListInt, ListBool, ListDouble, ListByte, ListChar, 
-		Nil, Class, Other
-    }
 
     public class VariableItem
     {
-
-		public class Nil
-		{
-			public override string ToString()
-			{
-				return "nil";
-			}
-		}
-
         public string StatementId { get; set; }
         public string Name { get; set; }
-        public VariableType Type { get; set; }
-        private object Variable { get; set; }
+        private IClass Variable { get; set; }
 
         public object Data {
-            get { return Variable; }
+            get { return Variable.Data(); }
         }
 
         #region Regular
@@ -43,7 +28,6 @@ namespace SrbRuby
         {
             return string.Equals(StatementId, other.StatementId) &&
                 string.Equals(Name, other.Name) &&
-                Type == other.Type &&
                 Equals(Variable, other.Variable);
         }
 
@@ -61,7 +45,6 @@ namespace SrbRuby
             {
                 int hashCode = (StatementId != null ? StatementId.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (int)Type;
                 hashCode = (hashCode * 397) ^ (Variable != null ? Variable.GetHashCode() : 0);
                 return hashCode;
             }
@@ -70,14 +53,21 @@ namespace SrbRuby
 
 		public VariableItem(object ob, string name)
         {
+			//TODO: detect class type !
 			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
-            Set(ob);
+			if(ob is IClass) Variable = (IClass)ob;
         }
+
+		public VariableItem(IClass ob, string name)
+		{
+			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
+			if (ob is IClass) Variable = (IClass)ob;
+		}
 
         public VariableItem(object ob)
         {
 			this.Name = Guid.NewGuid().ToString().Replace("-","");
-            Set(ob);
+			if (ob is IClass) Variable = (IClass)ob;
         }
 
         public VariableItem(string var)
@@ -86,596 +76,196 @@ namespace SrbRuby
             Initialize(var);
         }
 
-		#region Initialize.
-
 		public void Initialize(string var)
         {
 			var = var.Trim();
 
 		    if (var.Contains(".new"))
 		    {
-		        Set(GLOBALS.ClassesList.Get(var.Replace(".new", "")));
+		        Variable = GLOBALS.ClassesList.Get(var.Replace(".new", ""));
                 return;
 		    }
 
-		    if (var == "true" || var == "false")
-            {
-                bool b = (var == "true");
-                Set(b);
-                return;
-            }
-
-			if (var.ToLower() == "nil")
+			foreach (var @class in GLOBALS.ClassesList.List)
 			{
-				Set(new Nil());
-				return;
+				object newVar = null;
+				if ((newVar = @class.Parse(var)) != null)
+				{
+					Variable = (IClass)newVar;
+					break;
+				}
 			}
-
-            // if ' - char
-            if (var.Contains("'"))
-            {
-                char d;
-                if (char.TryParse(var.Replace("'", "").Trim(), out d))
-                {
-                    Set(d);
-                    return;
-                }
-            }
-
-            // if " - string
-            if (var.Contains("\""))
-            {
-	            var v = var.Trim();
-				if(v[0]!='"' || v[v.Length-1]!='"') throw new Exception("Error create string variable!");
-				v = v.Substring(1, v.Length - 2);
-				Set(v);
-                return;
-            }
-
-            // if . and digits - double
-            if (var.Contains("."))
-            {
-                if (var.Replace('.', '0').All(Char.IsDigit))
-                {
-                    double d;
-                    if (double.TryParse(var, out d))
-                    {
-                        Set(d);
-                        return;
-                    }
-                }
-            }
-
-            // byte
-            if (var.All(Char.IsDigit))
-            {
-                byte b;
-                if (byte.TryParse(var, out b))
-                {
-                    Set(b);
-                    return;
-                }
-            }
-
-            // int
-            if (var.All(Char.IsDigit))
-            {
-                Int32 i;
-                if (Int32.TryParse(var, out i))
-                {
-                    Set(i);
-                    return;
-                }
-            }
 
             throw new Exception("Can not create variable: " + var);
         }
 
-		#endregion
-
-		#region Emplements variable.
-
-        public void Set(object ob)
-        {
-            var typeSplited = new List<string>(ob.GetType().AssemblyQualifiedName.Split('[', ','));
-            typeSplited.RemoveAll(i => i.Trim().Length < 1);
-            Variable = ob;
-
-            if (ob is IClass)
-            {
-                Type = VariableType.Class;
-                return;
-            }
-
-            if (!ob.GetType().Name.Contains("List"))
-            {
-                switch (ob.GetType().Name)
-                {
-                    case "String": Type = VariableType.String;
-                        break;
-                    case "Boolean": Type = VariableType.Bool;
-                        break;
-                    case "Double": Type = VariableType.Double;
-                        break;
-                    case "Int32": Type = VariableType.Int;
-                        break;
-                    case "Char": Type = VariableType.Char;
-                        break;
-                    case "Byte": Type = VariableType.Byte;
-                        break;
-					case "Nil": Type = VariableType.Nil;
-						break;
-
-                    default:
-                        throw new Exception("Not found variable type! Name:");
-                }
-            }
-            else
-            {
-                switch (typeSplited[1])
-                {
-                    case "System.String": Type = VariableType.ListString;
-                        break;
-                    case "System.Boolean": Type = VariableType.ListBool;
-                        break;
-                    case "System.Double": Type = VariableType.ListDouble;
-                        break;
-                    case "System.Int32": Type = VariableType.ListInt;
-                        break;
-                    case "System.Char": Type = VariableType.ListChar;
-                        break;
-                    case "System.Byte": Type = VariableType.Byte;
-                        break;
-                }
-            }
-
-        }
-
-        public object GetData()
-        {
-            return Variable;
-        }
-
-        #endregion
-
         #region Overload perators
 
-        public static bool operator &(VariableItem a, VariableItem b)
-        {
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Bool)
-            {
-                return ((bool)a.Variable && (bool)b.Variable);
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+	    public static bool operator &(VariableItem a, VariableItem b)
+	    {
+		    object ret;
+		    if ((ret = ((IClass) a.Variable).Operator("&", b)) != null)
+		    {
+			    return (bool)ret;
+		    }
+		    else
+		    {
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+		    }
         }
 
 
         public static bool operator |(VariableItem a, VariableItem b)
         {
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Bool)
-            {
-                return ((bool)a.Variable || (bool)b.Variable);
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("|", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
-
-
 
         public static bool operator >(VariableItem a, VariableItem b)
         {
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable > (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable > (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable > (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable > (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable > (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable > (double)b.Variable;
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-
-
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.Char)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-                        return (int)a.Variable > (int)b.Variable;
-                    case VariableType.Double:
-                        return (double)a.Variable > (double)b.Variable;
-                    case VariableType.Byte:
-                        return (byte)a.Variable > (byte)b.Variable;
-                    case VariableType.Char:
-                        return (char)a.Variable > (char)b.Variable;
-                }
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator(">", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static bool operator <(VariableItem a, VariableItem b)
         {
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable < (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable < (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable < (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable < (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable < (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable < (double)b.Variable;
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.Char)
-            {
-                switch (a.Type)
-                {
-
-                    case VariableType.Int:
-                        return (int)a.Variable < (int)b.Variable;
-                    case VariableType.Double:
-                        return (double)a.Variable < (double)b.Variable;
-                    case VariableType.Byte:
-                        return (byte)a.Variable < (byte)b.Variable;
-                    case VariableType.Char:
-                        return (char)a.Variable < (char)b.Variable;
-                }
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("<", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static bool operator >=(VariableItem a, VariableItem b)
         {
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable >= (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable >= (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable >= (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable >= (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable >= (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable >= (double)b.Variable;
-
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.Char)
-            {
-                switch (a.Type)
-                {
-
-                    case VariableType.Int:
-                        return (int)a.Variable >= (int)b.Variable;
-                    case VariableType.Double:
-                        return (double)a.Variable >= (double)b.Variable;
-                    case VariableType.Byte:
-                        return (byte)a.Variable >= (byte)b.Variable;
-                    case VariableType.Char:
-                        return (char)a.Variable >= (char)b.Variable;
-
-                }
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator(">=", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static bool operator <=(VariableItem a, VariableItem b)
         {
 
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable <= (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable <= (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable <= (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable <= (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable <= (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable <= (double)b.Variable;
-
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.Char)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-                        return (int)a.Variable >= (int)b.Variable;
-                    case VariableType.Double:
-                        return (double)a.Variable >= (double)b.Variable;
-                    case VariableType.Byte:
-                        return (byte)a.Variable >= (byte)b.Variable;
-                    case VariableType.Char:
-                        return (char)a.Variable >= (char)b.Variable;
-
-                }
-            }
-            else
-            {
-                throw new Exception("Types can not be compared. Variable: [" + a.Name + "] - [" + b.Name + "]");
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("<=", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static bool operator ==(VariableItem a, VariableItem b)
         {
-            if (((object)a) == null || ((object)b) == null)
-            {
-                return (((object)a) == null && ((object)b) == null);
-            }
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable == (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable == (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable == (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable == (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable == (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable == (double)b.Variable;
-
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            switch (a.Type)
-            {
-                case VariableType.Int:
-                    return (int)a.Variable == (int)b.Variable;
-                case VariableType.Double:
-                    return (double)a.Variable == (double)b.Variable;
-                case VariableType.Byte:
-                    return (byte)a.Variable == (byte)b.Variable;
-                case VariableType.Char:
-                    return (char)a.Variable == (char)b.Variable;
-                case VariableType.String:
-                    return (string)a.Variable == (string)b.Variable;
-                case VariableType.Bool:
-                    return (bool)a.Variable == (bool)b.Variable;
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("==", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static bool operator !=(VariableItem a, VariableItem b)
         {
-            if (((object)a) == null || ((object)b) == null)
-            {
-                return !(((object)a) == null && ((object)b) == null);
-            }
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Double))
-                return (int)a.Variable != (double)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Double))
-                return (double)a.Variable != (int)b.Variable;
-
-            if ((a.Type == VariableType.Int && b.Type == VariableType.Byte))
-                return (int)a.Variable != (byte)b.Variable;
-
-            if ((b.Type == VariableType.Int && a.Type == VariableType.Byte))
-                return (byte)a.Variable != (int)b.Variable;
-
-            if ((a.Type == VariableType.Double && b.Type == VariableType.Byte))
-                return (double)a.Variable != (byte)b.Variable;
-
-            if ((b.Type == VariableType.Double && a.Type == VariableType.Byte))
-                return (byte)a.Variable != (double)b.Variable;
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            switch (a.Type)
-            {
-                case VariableType.Int:
-                    return (int)a.Variable != (int)b.Variable;
-                case VariableType.Double:
-                    return (double)a.Variable != (double)b.Variable;
-                case VariableType.Byte:
-                    return (byte)a.Variable != (byte)b.Variable;
-                case VariableType.Char:
-                    return (char)a.Variable != (char)b.Variable;
-                case VariableType.String:
-                    return (string)a.Variable != (string)b.Variable;
-                case VariableType.Bool:
-                    return (bool)a.Variable != (bool)b.Variable;
-            }
-
-            return false;
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("!=", b)) != null)
+			{
+				return (bool)ret;
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
 
         public static VariableItem operator +(VariableItem a, VariableItem b)
         {
-            if ((a.Type != b.Type) && (a.Type == VariableType.String || b.Type == VariableType.String))
-            {
-                if (a.Type == VariableType.String)
-                    return new VariableItem("\"" + a + b + "\"");
-
-                if (b.Type == VariableType.String)
-                    return new VariableItem("\"" + a + b + "\"");
-            }
-
-
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.String)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-                        return new VariableItem((int)a.Variable + (int)b.Variable);
-                    case VariableType.Double:
-                        return new VariableItem((double)a.Variable + (double)b.Variable);
-                    case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable + (byte)b.Variable);
-                    case VariableType.String:
-                        return new VariableItem("\""+((string)a.Variable) + ((string)b.Variable)+"\"");
-                }
-            }
-
-            throw new Exception("Unary operation (+) return null !");
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("+", b)) != null)
+			{
+				return new VariableItem(ret);
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static VariableItem operator -(VariableItem a, VariableItem b)
-        {
-            if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-                        return new VariableItem((int)a.Variable - (int)b.Variable);
-                    case VariableType.Double:
-                        return new VariableItem((double)a.Variable - (double)b.Variable);
-                    case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable - (byte)b.Variable);
-                }
-            }
-
-            throw new Exception("Unary operation (+) return null !");
+		{
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("-", b)) != null)
+			{
+				return new VariableItem(ret);
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         public static VariableItem operator /(VariableItem a, VariableItem b)
         {
-            //if (a.Type != b.Type) throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-                        return new VariableItem((int)a.Variable / Convert.ToInt32(b.Variable));
-                    case VariableType.Double:
-                        return new VariableItem((double)a.Variable / Convert.ToDouble(b.Variable));
-                    case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable / Convert.ToByte(b.Variable));
-                }
-            }
-
-            throw new Exception("Unary operation (+) return null !");
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("/", b)) != null)
+			{
+				return new VariableItem(ret);
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
 
         public static VariableItem operator *(VariableItem a, VariableItem b)
         {
-
-            //if (a.Type != b.Type || (a.Type == VariableType.String && b.Type == VariableType.Int))
-            //    throw new Exception("Type not same for unary operation. Variable: [" + a.Name + "] - [" + b.Name + "]");
-
-            if (a.Type == VariableType.Int || a.Type == VariableType.Double || a.Type == VariableType.Byte ||
-                a.Type == VariableType.String)
-            {
-                switch (a.Type)
-                {
-                    case VariableType.Int:
-
-						return new VariableItem(((int)a.Variable) * Convert.ToInt32(b.Variable));
-                    case VariableType.Double:
-                        return new VariableItem((double)a.Variable * Convert.ToDouble(b.Variable));
-                    case VariableType.Byte:
-                        return new VariableItem((byte)a.Variable * Convert.ToByte(b.Variable));
-
-                    case VariableType.String:
-                        string ret = string.Empty;
-                        for (int i = 0; i < Convert.ToInt32(b.Variable); i++) ret += (string)a.Variable;
-                        return new VariableItem("\"" + ret + "\"");
-                }
-            }
-
-            throw new Exception("Unary operation (*) return null !");
+			object ret;
+			if ((ret = ((IClass)a.Variable).Operator("*", b)) != null)
+			{
+				return new VariableItem(ret);
+			}
+			else
+			{
+				throw new Exception("Types can not be compared. Variable: [" + a + "] - [" + b + "]");
+			}
         }
 
         #endregion
 
-
         public override string ToString()
         {
-            return GetData().ToString();
+			return Variable.ToString();
         }
     }
 
@@ -684,11 +274,6 @@ namespace SrbRuby
     public class Variables : IDisposable
     {
         private Hashtable _variableList;
-
-        public string[] GetVariableTypeList()
-        {
-            return Enum.GetNames(typeof(VariableType));
-        }
 
         public Variables()
         {
@@ -723,8 +308,6 @@ namespace SrbRuby
 			Add(newvar, statementId);
 			return newvar;
 		}
-
-	    
 
 	    public void Remove(VariableItem v)
         {
