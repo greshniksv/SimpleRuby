@@ -14,6 +14,8 @@ namespace SrbEngine
         string Help();
         VariableItem Function(string name, List<VariableItem> param);
         VariableItem Properties(string name);
+        bool OperatorB(string type, object o1, object o2); /* type: <,>,==,!=,>=,<= */
+        object OperatorD(string type, object o1, object o2); /* type: >>,<<,+,-,*,/,^,%,~ */
     }
 
 

@@ -299,7 +299,10 @@ namespace SrbRuby
 						}
 
 						for (int i = 0; i < varListParams.Count; i++) varListParams[i].Name = item.Parameters[i];
-						var ret = (new Functions(GLOBALS.Functions.FirstOrDefault(i => i.Id == item.Id)).Execute(varListParams));
+
+					    var newFunc = new Functions(GLOBALS.Functions.FirstOrDefault(i => i.Id == item.Id));
+					    newFunc.ExecuteCodeEvent += (function, command) => ExecuteCodeEvent(function,command);
+					    var ret = (newFunc).Execute(varListParams);
 						_variables.Add(ret, _statementList.Last());
 
 						codeItem = codeItem.Substring(0, first - item.Name.Length) + ret.Name +
@@ -835,7 +838,7 @@ namespace SrbRuby
             }
             else
             {
-                throw new Exception("BUG!");
+                //throw new Exception("BUG!");
             }
         }
 

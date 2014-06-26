@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SrbEngine", "SrbEngine\SrbE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SrbEditor", "SrbEditor\SrbEditor.csproj", "{206F658F-7FB5-4648-83E1-77D8D86C0EA1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SrbExecutor", "SrbExecutor\SrbExecutor.csproj", "{C85EBF56-B0CF-4B85-8FF5-DDB9A1DBA106}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{206F658F-7FB5-4648-83E1-77D8D86C0EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{206F658F-7FB5-4648-83E1-77D8D86C0EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{206F658F-7FB5-4648-83E1-77D8D86C0EA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C85EBF56-B0CF-4B85-8FF5-DDB9A1DBA106}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C85EBF56-B0CF-4B85-8FF5-DDB9A1DBA106}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C85EBF56-B0CF-4B85-8FF5-DDB9A1DBA106}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C85EBF56-B0CF-4B85-8FF5-DDB9A1DBA106}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

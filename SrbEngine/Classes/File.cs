@@ -28,6 +28,14 @@ namespace SrbEngine.Class
 	        throw new NotImplementedException();
 	    }
 
-	   
+	    public bool OperatorB(string type, object o1, object o2)
+	    {
+	        throw new NotImplementedException();
+	    }
+
+	    public object OperatorD(string type, object o1, object o2)
+	    {
+	        throw new NotImplementedException();
+	    }
 	}
 }
