@@ -23,7 +23,12 @@ namespace SrbEngine.Class
 	        throw new NotImplementedException();
 	    }
 
-		public object Parse(string s)
+		IClass IClass.Parse(string s)
+		{
+			return null;
+		}
+
+		public IClass Parse(object s)
 		{
 			throw new NotImplementedException();
 		}

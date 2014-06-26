@@ -17,8 +17,9 @@ namespace SrbRuby
         public string StatementId { get; set; }
         public string Name { get; set; }
         private IClass Variable { get; set; }
+	    private string ClassName { get; set; }
 
-        public object Data {
+	    public object Data {
             get { return Variable.Data(); }
         }
 
@@ -58,6 +59,12 @@ namespace SrbRuby
 			if(ob is IClass) Variable = (IClass)ob;
         }
 
+		public VariableItem(string ob, string name)
+		{
+			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
+			Initialize(ob);
+		}
+
 		public VariableItem(IClass ob, string name)
 		{
 			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
@@ -92,7 +99,8 @@ namespace SrbRuby
 				if ((newVar = @class.Parse(var)) != null)
 				{
 					Variable = (IClass)newVar;
-					break;
+					ClassName = Variable.Name();
+					return;
 				}
 			}
 

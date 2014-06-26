@@ -20,7 +20,7 @@ namespace SrbEngine.Class.Variables
 
 		public string Name()
 		{
-			throw new NotImplementedException();
+			return "Nil";
 		}
 
 		public string Help()
@@ -28,7 +28,12 @@ namespace SrbEngine.Class.Variables
 			throw new NotImplementedException();
 		}
 
-		public object Parse(string s)
+		IClass IClass.Parse(string s)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IClass Parse(object s)
 		{
 			throw new NotImplementedException();
 		}

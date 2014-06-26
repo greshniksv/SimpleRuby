@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SrbEngine.Class;
+using SrbEngine.Class.Variables;
+using SrbEngine.Variables;
 using SrbRuby;
 
 namespace SrbEngine
@@ -13,7 +15,8 @@ namespace SrbEngine
 	    object Data();
         string Name();
         string Help();
-	    object Parse(string s);
+	    IClass Parse(string s);
+		IClass Parse(object s);
         VariableItem Function(string name, List<VariableItem> param);
         VariableItem Properties(string name);
 		object Operator(string type, object o); /* type: <,>,==,!=,>=,<=,>>,<<,+,-,*,/,^,%,~ */
@@ -32,7 +35,10 @@ namespace SrbEngine
         {
 			_classList = new List<IClass> 
             {
-                new File(),
+				new Class.Variables.String(null),
+				new Class.Variables.Bool(false),
+				//new SrbEngine.Class.Variables.Nil(),
+                //new File(),
                 new GarbageFuscatorClass()
             };
         }

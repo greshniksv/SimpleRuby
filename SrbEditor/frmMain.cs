@@ -42,11 +42,11 @@ namespace SrbEditor
 			srtbSource.ColorizeWordDic.Add("and", Color.Blue);
 
 
-            foreach (var varType in _engine.GetVariableTypeList())
+            /*foreach (var varType in _engine.GetVariableTypeList())
             {
                 //srtbSource.Settings.ManageKeywords.Add(varType);
 				srtbSource.AddWord(varType, Color.Blue);
-            }
+            }*/
             
             foreach (var name in _engine.Command.GetCommandNameList())
             {

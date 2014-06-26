@@ -31,10 +31,16 @@ namespace SrbEngine.Class
             return "GarbageFuscator.New \n GarbageFuscator.Crypt(key, data) \n GarbageFuscator.Decrypt(key, data)";
         }
 
-	    public object Parse(string s)
+	    public IClass Parse(string s)
+	    {
+		    return null;
+	    }
+
+	    public IClass Parse(object s)
 	    {
 		    throw new NotImplementedException();
 	    }
+
 
 	    public VariableItem Function(string name, List<VariableItem> param)
         {
