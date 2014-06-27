@@ -393,7 +393,7 @@ namespace SrbRuby
                 {
                     var s = codeItem.Substring(start, lastPos - start - 1);
                     s = s.Replace("\\'", "'").Replace("\\\"", "\"");
-                    var v = _variables.Create(s, null, _statementList.Last());
+                    var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
 
                     codeItem = codeItem.Substring(0, start - 1) + v.Name +
                            codeItem.Substring(lastPos, codeItem.Length - (lastPos));
@@ -414,7 +414,7 @@ namespace SrbRuby
 
                 var s = codeItem.Substring(firstPos+3, lastpos - firstPos - 3);
                 s = s.Replace("\\'", "'").Replace("\\\"", "\"");
-                var v = _variables.Create(s, null, _statementList.Last());
+                var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
 
                 codeItem = codeItem.Substring(0, firstPos) + v.Name +
                        codeItem.Substring(lastpos, codeItem.Length - (lastpos+1));
@@ -445,7 +445,7 @@ namespace SrbRuby
                         var varData = SimlifyExpressionByParenthesis(s.Substring(startb + 2, endb - (startb + 2))).ToString();
                         s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
                     }
-                    var v = _variables.Create(s, null, _statementList.Last());
+                    var v = _variables.Create("\""+s+"\"", null, _statementList.Last());
 
                     codeItem = codeItem.Substring(0, start - 1) + v.Name +
                            codeItem.Substring(lastPos, codeItem.Length - (lastPos));
@@ -480,7 +480,7 @@ namespace SrbRuby
                     s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
                 }
 
-                var v = _variables.Create(s, null, _statementList.Last());
+                var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
 
                 codeItem = codeItem.Substring(0, firstPos) + v.Name +
                        codeItem.Substring(lastpos, codeItem.Length - (lastpos + 1));
@@ -521,7 +521,7 @@ namespace SrbRuby
                     s = s.Substring(0, startb) + varData + s.Substring(endb + 1, s.Length - (endb + 1));
                 }
 
-                var v = _variables.Create(s, null, _statementList.Last());
+                var v = _variables.Create("\"" + s + "\"", null, _statementList.Last());
 
                 codeItem = codeItem.Substring(0, firstPos) + v.Name +
                        codeItem.Substring(lastpos, codeItem.Length - (lastpos + 1));
@@ -814,8 +814,9 @@ namespace SrbRuby
                     else
                     {
                         var o2 = _variables.GetVariable(cmdList[i + 1]);
-						rez = new VariableItem(o2, cmdList[i - 1]);
-                        _variables.Remove(o2);
+                        o2.Name = cmdList[i - 1];
+						rez = o2;
+                        //_variables.Remove(o2);
                     }
                    
                     cmdList[i - 1] = "";

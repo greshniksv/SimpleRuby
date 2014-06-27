@@ -28,11 +28,6 @@ namespace SrbEngine.Class
 			return null;
 		}
 
-		public IClass Parse(object s)
-		{
-			throw new NotImplementedException();
-		}
-
 		public VariableItem Function(string name, List<VariableItem> param)
 	    {
 	        throw new NotImplementedException();
@@ -47,5 +42,10 @@ namespace SrbEngine.Class
 		{
 			throw new NotImplementedException();
 		}
-	}
+
+        public bool IsClass(object s)
+        {
+            return (s is File);
+        }
+    }
 }

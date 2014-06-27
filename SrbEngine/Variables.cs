@@ -56,7 +56,10 @@ namespace SrbRuby
         {
 			//TODO: detect class type !
 			this.Name = (name ?? Guid.NewGuid().ToString().Replace("-", ""));
-			if(ob is IClass) Variable = (IClass)ob;
+		    if (ob is IClass)
+		    {
+		        Variable = (IClass)ob;
+		    }
         }
 
 		public VariableItem(string ob, string name)
@@ -126,7 +129,7 @@ namespace SrbRuby
         public static bool operator |(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("|", b)) != null)
+			if ((ret = ((IClass)a.Variable).Operator("|", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -139,7 +142,7 @@ namespace SrbRuby
         public static bool operator >(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator(">", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator(">", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -152,7 +155,7 @@ namespace SrbRuby
         public static bool operator <(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("<", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("<", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -165,7 +168,7 @@ namespace SrbRuby
         public static bool operator >=(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator(">=", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator(">=", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -179,7 +182,7 @@ namespace SrbRuby
         {
 
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("<=", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("<=", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -192,7 +195,7 @@ namespace SrbRuby
         public static bool operator ==(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("==", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("==", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -205,7 +208,7 @@ namespace SrbRuby
         public static bool operator !=(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("!=", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("!=", b.Variable)) != null)
 			{
 				return (bool)ret;
 			}
@@ -219,7 +222,7 @@ namespace SrbRuby
         public static VariableItem operator +(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("+", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("+", b.Variable)) != null)
 			{
 				return new VariableItem(ret);
 			}
@@ -232,7 +235,7 @@ namespace SrbRuby
         public static VariableItem operator -(VariableItem a, VariableItem b)
 		{
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("-", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("-", b.Variable)) != null)
 			{
 				return new VariableItem(ret);
 			}
@@ -245,7 +248,7 @@ namespace SrbRuby
         public static VariableItem operator /(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("/", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("/", b.Variable)) != null)
 			{
 				return new VariableItem(ret);
 			}
@@ -259,7 +262,7 @@ namespace SrbRuby
         public static VariableItem operator *(VariableItem a, VariableItem b)
         {
 			object ret;
-			if ((ret = ((IClass)a.Variable).Operator("*", b)) != null)
+            if ((ret = ((IClass)a.Variable).Operator("*", b.Variable)) != null)
 			{
 				return new VariableItem(ret);
 			}

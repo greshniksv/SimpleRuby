@@ -15,7 +15,7 @@ namespace SrbEngine.Class.Variables
 
 		public object Data()
 		{
-			throw new NotImplementedException();
+		    return this;
 		}
 
 		public string Name()
@@ -25,20 +25,25 @@ namespace SrbEngine.Class.Variables
 
 		public string Help()
 		{
-			throw new NotImplementedException();
+			return "Nil";
 		}
 
 		IClass IClass.Parse(string s)
 		{
-			throw new NotImplementedException();
+		    if (s.ToLower().Trim() == "nil")
+		    {
+		        return new Nil();
+		    }
+		    return null;
 		}
 
-		public IClass Parse(object s)
-		{
-			throw new NotImplementedException();
-		}
+	    public bool IsClass(object s)
+	    {
+	        return (s is Nil);
+	    }
 
-		public VariableItem Function(string name, List<VariableItem> param)
+
+	    public VariableItem Function(string name, List<VariableItem> param)
 		{
 			throw new NotImplementedException();
 		}
@@ -50,7 +55,9 @@ namespace SrbEngine.Class.Variables
 
 		public object Operator(string type, object o)
 		{
-			throw new NotImplementedException();
+		    return (o != null && (o is Nil));
 		}
+
+	   
 	}
 }

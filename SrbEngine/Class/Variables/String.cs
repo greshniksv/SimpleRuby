@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Odbc;
 using System.Linq;
 using System.Text;
+using SrbEngine.Variables;
 using SrbRuby;
 
 namespace SrbEngine.Class.Variables
@@ -33,30 +35,37 @@ namespace SrbEngine.Class.Variables
 	    public IClass Parse(string s)
 	    {
 			var buf = s.Replace("\\'", "").Replace("\\\"", "").Trim();
-			if ((buf.Count(i => i == '"') != 2) || (buf.Count(i => i == '\'') != 2)) return null;
+	        var count = (buf.Count(i => i == '"'));
+	        if ((buf.Count(i => i == '"') == 2) || (buf.Count(i => i == '\'') == 2))
+	        {
+	            var first = buf.IndexOf('"', 0);
+	            int end;
+	            if (first == -1)
+	            {
+	                first = buf.IndexOf('\'', 0);
+	                end = buf.IndexOf('\'', first + 1);
+	            }
+	            else
+	                end = buf.IndexOf('"', first + 1);
 
-		    var first = buf.IndexOf('"', 0);
-		    int end = -1;
-		    if (first == -1)
-		    {
-				first = buf.IndexOf('\'', 0);
-				end = buf.IndexOf('\'', first + 1);
-		    }
-		    else
-				end = buf.IndexOf('"', first + 1);
+	            string rest = first!=0 ?
+                    (buf.Substring(0, first) + buf.Substring(end+1, buf.Length - (end+1))).Trim() :
+                    (buf.Substring(end+1, buf.Length - (end+1))).Trim();
 
-		    var rest = buf.Substring(first, end - first).Trim();
-		    if (rest.Length > 0) return null;
+	            if (rest.Length > 0) return null;
 
-		    return new String(s.Trim(new []{' ','"'}));
+	            return new String(s.Trim(new[] {' ', '"'}));
+	        }
+	        else
+	        {
+	            return null;
+	        }
 	    }
 
-	    public IClass Parse(object s)
-	    {
-		    if(s is string) return new String((string)s);
-		    return null;
-	    }
-
+        public bool IsClass(object s)
+        {
+            return (s is String);
+        }
 
 	    public VariableItem Function(string name, List<VariableItem> param)
 	    {
@@ -70,7 +79,36 @@ namespace SrbEngine.Class.Variables
 
 	    public object Operator(string type, object o)
 	    {
-		    throw new NotImplementedException();
+	        switch (type)
+	        {
+	            case "==":
+                    return (o != null && _variable == o.ToString());
+
+                case "!=":
+                    return !(o != null && _variable == o.ToString());
+
+                case "+":
+                    return new String(_variable + ((IClass)o).Data());
+
+                case "*":
+	                if (o is Int)
+	                {
+	                    var ret = string.Empty;
+	                    for (int i = 0; i < (int)((IClass)o).Data(); i++)
+	                    {
+	                        ret += _variable;
+	                    }
+                        return new String(ret);
+	                }
+	                else
+	                    return null;
+
+                default:
+	                return null;
+	        }
+
+
+	        return null;
 	    }
     }
 }

@@ -26,8 +26,8 @@ namespace SrbEngine.Commands
 			if (param.Count() != 3) throw new Exception("Alert error! Count of params not valid! ");
 
 			MessageBoxIcon icon;
-			if (!Enum.TryParse(param[2].ToString(), true, out icon)) icon = MessageBoxIcon.Error;
-			MessageBox.Show(param[0].ToString(), param[1].ToString(), MessageBoxButtons.OK, (MessageBoxIcon)icon);
+            if (!Enum.TryParse(param[2].Data.ToString(), true, out icon)) icon = MessageBoxIcon.Error;
+            MessageBox.Show(param[0].Data.ToString(), param[1].Data.ToString(), MessageBoxButtons.OK, (MessageBoxIcon)icon);
 
 			return new VariableItem("nil");
 		}

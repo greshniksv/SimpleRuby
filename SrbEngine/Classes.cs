@@ -16,7 +16,7 @@ namespace SrbEngine
         string Name();
         string Help();
 	    IClass Parse(string s);
-		IClass Parse(object s);
+		bool IsClass(object s);
         VariableItem Function(string name, List<VariableItem> param);
         VariableItem Properties(string name);
 		object Operator(string type, object o); /* type: <,>,==,!=,>=,<=,>>,<<,+,-,*,/,^,%,~ */
@@ -37,7 +37,7 @@ namespace SrbEngine
             {
 				new Class.Variables.String(null),
 				new Class.Variables.Bool(false),
-				//new SrbEngine.Class.Variables.Nil(),
+				new SrbEngine.Class.Variables.Nil(),
                 //new File(),
                 new GarbageFuscatorClass()
             };

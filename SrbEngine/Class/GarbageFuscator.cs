@@ -36,11 +36,10 @@ namespace SrbEngine.Class
 		    return null;
 	    }
 
-	    public IClass Parse(object s)
-	    {
-		    throw new NotImplementedException();
-	    }
-
+        public bool IsClass(object s)
+        {
+            return s is GarbageFuscator;
+        }
 
 	    public VariableItem Function(string name, List<VariableItem> param)
         {
