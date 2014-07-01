@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SrbEngine.Class;
-using SrbEngine.Class.Variables;
+using SrbEngine.RClass;
+using SrbEngine.RClass.Variables;
 using SrbEngine.Variables;
 using SrbRuby;
 
@@ -35,9 +35,9 @@ namespace SrbEngine
         {
 			_classList = new List<IClass> 
             {
-				new Class.Variables.String(null),
-				new Class.Variables.Bool(false),
-				new SrbEngine.Class.Variables.Nil(),
+				new RClass.Variables.String(null),
+				new RClass.Variables.Bool(false),
+				new SrbEngine.RClass.Variables.Nil(),
                 //new File(),
                 new GarbageFuscatorClass()
             };

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SrbEngine.Class.Variables
+namespace SrbEngine.Classess.Variables
 {
 	class Byte
 	{

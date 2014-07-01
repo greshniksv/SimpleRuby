@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
-using SrbEngine.Variables;
 using SrbRuby;
 
-namespace SrbEngine.Class.Variables
+namespace SrbEngine.Classess.Variables
 {
     public class String : IClass
     {

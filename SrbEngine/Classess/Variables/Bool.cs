@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using SrbRuby;
 
-namespace SrbEngine.Class.Variables
+namespace SrbEngine.Classess.Variables
 {
 	internal class Bool : IClass
 	{

@@ -5,13 +5,17 @@ using System.Text;
 
 namespace SrbEngine
 {
-    class Module : IDisposable
+    public class RModule : IDisposable
     {
+		private List<RClass> _classList = new List<RClass>();
 
+	    public List<RClass> ClassList
+	    {
+		    get { return _classList; }
+		    set { _classList = value; }
+	    }
 
-
-
-        #region Despose patternt
+	    #region Despose patternt
         public void Dispose()
         {
             Dispose(true);
