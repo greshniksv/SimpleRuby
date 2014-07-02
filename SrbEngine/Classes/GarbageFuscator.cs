@@ -5,7 +5,7 @@ using System.Text;
 using SrbEngine.Libraries;
 using SrbRuby;
 
-namespace SrbEngine.Class
+namespace SrbEngine.Classes
 {
     public class GarbageFuscatorClass : IClass
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows.Forms;
@@ -15,8 +16,9 @@ namespace SrbRuby
     {
         public static Hashtable Variables { get; set; }
         public static List<FunctionItem> Functions { get; set; }
-        public static Classes ClassesList { get; set; }
-	    public static List<RModule> ModuleList { get; set; }
+        public static ClassManage ClassesList { get; set; }
+	    public static List<RModule> RModuleList { get; set; }
+        public static List<RClass> RClassesList { get; set; }
     }
 
 
@@ -39,7 +41,9 @@ namespace SrbRuby
         {
             GLOBALS.Functions = new List<FunctionItem>();
             GLOBALS.Variables = new Hashtable();
-            GLOBALS.ClassesList = new Classes();
+            GLOBALS.ClassesList = new ClassManage();
+            GLOBALS.RClassesList = new List<RClass>();
+            GLOBALS.RModuleList = new List<RModule>();
         }
 
         public void ExecuteFunction(string funcName = "*")
@@ -77,7 +81,7 @@ namespace SrbRuby
         private void CreateFunction(List<string> dataMass)
         {
 			GLOBALS.Functions.Clear();
-	        dataMass.RemoveAll(string.IsNullOrEmpty);
+	        dataMass.RemoveAll(i=>string.IsNullOrEmpty(i.Trim()));
 
 			// split using ';' char and remove comment (#,=begin,=end)
 	        var nDataMass = new List<string>();
@@ -85,16 +89,28 @@ namespace SrbRuby
 	        foreach (var dataItem in dataMass)
 	        {
 				// remove string
-				var item = RemoveString(dataItem);
+                var item = " " + EncodeString(dataItem) + " ";
+                
 
-				if (item.Contains("=begin ")) comment = true;
+                // remove comment
+	            if (item.Contains("#"))
+	            {
+                    var p = item.IndexOf('#');
+                    item = item.Substring(0, p);
+	            }
+
+	            if (item.Contains("=begin ")) comment = true;
 
 		        if (!comment)
 		        {
-					if (item.Contains(";"))
-						nDataMass.AddRange(item.Split(';'));
-			        else
-						nDataMass.Add(item);
+		            if (item.Contains(";"))
+		            {
+		                nDataMass.AddRange(item.Split(';').Select(DecodeString));
+		            }
+		            else
+		            {
+                        nDataMass.Add(DecodeString(item));
+		            }
 		        }
 
 				if (item.Contains("=end ")) comment = false;
@@ -109,47 +125,110 @@ namespace SrbRuby
 
 	        RModule rmodule = null;
 			RClass rclass = null;
-			FunctionItem func = null;
-			FunctionItem baseFunc = new FunctionItem(){Id = Guid.NewGuid(),Name = "*"};
+            FunctionItem func = null;
+            var baseFunc = new FunctionItem() { Id = Guid.NewGuid(), Name = "*" + Guid.NewGuid(), Code = new List<string>(), Parameters = new List<string>() };
 	        
 			int funcDeep = -1;
 			int classDeep = -1;
 			int moduleDeep = -1;
+            int lineNumber = 0;
 
             var manageWords = new string[] { " if ", " unless ", " each ", " for ", " while ", " do " };
+            var attrs = new string[] { "attr_reader ", "attr_writer ", "attr_accessor " };
             foreach (var dataItem in dataMass)
             {
-				var bufOrig = dataItem.Trim();
-				var buf = " " + RemoveString(dataItem.Trim())+" ";
+                lineNumber++;
+				//var bufOrig = dataItem.Trim();
+				var buf = " " + EncodeString(dataItem.Trim())+" ";
+
+                if (buf.Contains("module"))
+                {
+                    moduleDeep = ++ifLevel;
+                    var s = (buf.IndexOf("module") + 6);
+                    var name = buf.Substring(s, buf.Length - s).Trim();
+
+                    if (!char.IsUpper(name[0]))
+                        throw new Exception("class/module name must be CONSTANT");
+
+                    rmodule = new RModule(){Name = name,ClassList = new List<RClass>()};
+                }
+
 
 	            if (buf.Contains("class"))
-	            {
+                {
+                    classDeep = ++ifLevel;
+	                var s = (buf.IndexOf("class") + 6);
+                    var name = buf.Substring(s, buf.Length - s).Trim();
 
-	            }
+	                if (!char.IsUpper(name[0]))
+                        throw new Exception("class/module name must be CONSTANT");
+
+                    rclass = new RClass()
+                    {
+                        Name = name,
+                        FunctionList = new List<FunctionItem>(),
+                        Properties = new List<Properties>(),
+                    };
+                }
 
 
 	            if (buf.Contains("def"))
                 {
                     //var funcName = buf.Remove(buf.IndexOf("def"), 3).Trim();
-					var funcNameWithParam = bufOrig.Split(' ');
-	                var param = new List<string>();
-	                for (int i = 2; i < funcNameWithParam.Length; i++) param.Add(funcNameWithParam[i]); 
+                    var funcNameWithParam = new List<string>(buf.Split(' '));
+                    funcNameWithParam.RemoveAll(string.IsNullOrEmpty);
+                    var param =new List<string> (funcNameWithParam.Skip(2));
+	                //for (int i = 2; i < funcNameWithParam.Count; i++) param.Add(funcNameWithParam[i]);
 
-					func = new FunctionItem() { Name = funcNameWithParam[1], 
-						Code = new List<string>(), Id = Guid.NewGuid(),Parameters = param};
-	                funcDeep = ifLevel;
+                    var name = funcNameWithParam[1];
+                    var isStatic = (name.Contains("self."));
+                    name = name.Replace("self.", "");
+
+					func = new FunctionItem() { Name = name, 
+						Code = new List<string>(), Id = Guid.NewGuid(),Parameters = param,IsStatic = isStatic};
+	                funcDeep = ++ifLevel;
                 }
 
-				if (manageWords.Any(buf.Contains)) ifLevel++;
+
+                if (attrs.Any(buf.Contains))
+                {
+                    var type = AttrAccess.Read;
+                    if (attrs.Contains("attr_accessor")) type = AttrAccess.ReadWrite;
+                    if (attrs.Contains("attr_reader")) type = AttrAccess.Read;
+                    if (attrs.Contains("attr_writer")) type = AttrAccess.Write;
+
+                    var b = buf.Replace("attr_accessor", "").Replace("attr_reader", "").Replace("attr_writer", "").Trim();
+                    var list = new List<string>(b.Split(',')); 
+                    list.RemoveAll(string.IsNullOrEmpty);
+
+                    foreach (var l in list)
+                    {
+                        var p = new Properties() { Name = l.Trim(), Access = type };
+                        rclass.Properties.Add(p);
+                    }
+                   
+                }
+
+
+
+                if (manageWords.Any(buf.Contains)) ifLevel++;
+
+
+
 
 				// adding base execute code
-	            if (!buf.Contains("def") && !(ifLevel == 0 && buf.Contains("end")) && buf.Length > 0)
+	            if (!buf.Contains("def") && !buf.Contains("class") && !buf.Contains("module")
+                    && !((ifLevel == funcDeep || ifLevel == classDeep || ifLevel == moduleDeep) && buf.Contains("end")) 
+                    && buf.Length > 0)
 	            {
-					if (func!=null) 
-						func.Code.Add(buf);
+					if (func!=null)
+                        func.Code.Add(DecodeString(buf));
 					else
-						baseFunc.Code.Add(buf);
+                        baseFunc.Code.Add(DecodeString(buf));
 	            }
+
+
+
 
 
                 if (buf.Contains("end"))
@@ -171,26 +250,103 @@ namespace SrbRuby
 					// end of class
 					if (ifLevel == classDeep)
 					{
+                        if (rclass == null) throw new Exception("ParceError. Finded end of Class, but he not initialized!");
 
+                        if(rmodule==null)
+                        {
+                            GLOBALS.RClassesList.Add(rclass.Clone() as RClass);
+                            rclass = null;
+                        }
+                        else
+                        {
+                            rmodule.ClassList.Add(rclass.Clone() as RClass);
+                            rclass = null;
+                        }
 					}
 
 					// end of module
 					if (ifLevel == moduleDeep)
 					{
-
+                        if (rmodule == null) throw new Exception("ParceError. Finded end of Module, but he not initialized!");
+                        GLOBALS.RModuleList.Add(rmodule);
+					    rmodule = null;
 					}
 
 					if (ifLevel >= 0) ifLevel--;
 					else
-					{
-						throw new Exception("ParceError. Detected excess 'end' ");
-					}
-                    
+						throw new Exception("ParceError. Detected unexpected 'end' ");
                 }
             }
+
+
+            if (baseFunc.Code.Count > 0) ExecuteFunction(baseFunc.Name);
         }
 
-	    private string RemoveString(string item)
+
+        private string EncodeString(string item)
+        {
+            //  \" = ☺(alt+1); 
+            //  \' = ☻(alt+2); 
+            item = item.Replace("\\\"", "☺").Replace("\\'", "☻");
+
+            string bufs = string.Empty;
+            string buf = string.Empty;
+            bool cut = false;
+            foreach (char c in item)
+            {
+                if (c == '"' || c == '\'')
+                {
+                    cut = !cut;
+                    if (!cut)
+                    {
+                        var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(bufs)); 
+                        buf += "\"" +b64+ "\"";
+                        bufs = string.Empty;
+                    }
+                }
+                else
+                    if (!cut) buf += c;
+                    else
+                    {
+                        bufs += c;
+                    }
+            }
+            return buf;
+        }
+
+        private string DecodeString(string item)
+        {
+            //  \" = ☺(alt+1); 
+            //  \' = ☻(alt+2); 
+
+            string bufs = string.Empty;
+            string buf = string.Empty;
+            bool cut = false;
+            foreach (char c in item)
+            {
+                if (c == '"' || c == '\'')
+                {
+                    cut = !cut;
+                    if (!cut)
+                    {
+                        buf += "\"" + Encoding.UTF8.GetString(Convert.FromBase64String(bufs)) + "\"";
+                        bufs = string.Empty;
+                    }
+                }
+                else
+                    if (!cut) buf += c;
+                    else
+                    {
+                        bufs += c;
+                    }
+            }
+
+            buf = buf.Replace("☺", "\\\"").Replace("☻", "\\'");
+            return buf;
+        }
+
+
+        private string RemoveString(string item)
 	    {
 			item = item.Replace("\\\"", "").Replace("\\'", "");
 		    string buf = string.Empty;

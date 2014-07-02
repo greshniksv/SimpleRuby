@@ -3,9 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SrbEngine.RClass;
-using SrbEngine.RClass.Variables;
-using SrbEngine.Variables;
+using SrbEngine.Classes;
 using SrbRuby;
 
 namespace SrbEngine
@@ -23,7 +21,7 @@ namespace SrbEngine
     }
 
 
-    public class Classes : IDisposable
+    public class ClassManage : IDisposable
     {
 	    private readonly List<IClass> _classList;
 
@@ -31,13 +29,13 @@ namespace SrbEngine
 		    get { return _classList; }
 	    }
 
-	    public Classes()
+        public ClassManage()
         {
 			_classList = new List<IClass> 
             {
-				new RClass.Variables.String(null),
-				new RClass.Variables.Bool(false),
-				new SrbEngine.RClass.Variables.Nil(),
+				new Classes.Variables.String(null),
+				new Classes.Variables.Bool(false),
+				new Classes.Variables.Nil(),
                 //new File(),
                 new GarbageFuscatorClass()
             };

@@ -96,9 +96,7 @@ namespace SrbEditor
             if (e.KeyCode == Keys.F5)
             {
 				lbLog.Items.Clear();
-
                 _engine.LoadFromString(srtbSource.Text);
-                _engine.ExecuteFunction();
             }
 
             if (e.KeyCode == Keys.S && e.Control)

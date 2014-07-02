@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using SrbRuby;
 
-namespace SrbEngine.Classess.Variables
+namespace SrbEngine.Classes.Variables
 {
     public class String : IClass
     {

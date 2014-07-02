@@ -42,15 +42,15 @@
   <ItemGroup>
     <Compile Include="RClass.cs" />
     <Compile Include="Classes.cs" />
-    <Compile Include="Classess\File.cs" />
-    <Compile Include="Classess\GarbageFuscator.cs" />
-    <Compile Include="Classess\Variables\Array.cs" />
-    <Compile Include="Classess\Variables\Bool.cs" />
-    <Compile Include="Classess\Variables\Byte.cs" />
-    <Compile Include="Classess\Variables\Char.cs" />
-    <Compile Include="Classess\Variables\Double.cs" />
-    <Compile Include="Classess\Variables\Hash.cs" />
-    <Compile Include="Classess\Variables\Nil.cs" />
+    <Compile Include="Classes\File.cs" />
+    <Compile Include="Classes\GarbageFuscator.cs" />
+    <Compile Include="Classes\Variables\Array.cs" />
+    <Compile Include="Classes\Variables\Bool.cs" />
+    <Compile Include="Classes\Variables\Byte.cs" />
+    <Compile Include="Classes\Variables\Char.cs" />
+    <Compile Include="Classes\Variables\Double.cs" />
+    <Compile Include="Classes\Variables\Hash.cs" />
+    <Compile Include="Classes\Variables\Nil.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Commands\Crypting.cs" />
     <Compile Include="Commands\MessageBox.cs" />
@@ -62,8 +62,8 @@
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="Variables.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classess\Variables\Int.cs" />
-    <Compile Include="Classess\Variables\String.cs" />
+    <Compile Include="Classes\Variables\Int.cs" />
+    <Compile Include="Classes\Variables\String.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

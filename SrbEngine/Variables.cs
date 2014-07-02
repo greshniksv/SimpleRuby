@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using SrbEngine;
-using SrbEngine.RClass.Variables;
 
 namespace SrbRuby
 {

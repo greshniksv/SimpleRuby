@@ -8,23 +8,33 @@ namespace SrbEngine
 {
 	public enum AttrAccess { Read, Write, ReadWrite }
 
-	public class Attr
+    public class Properties
 	{
 		public AttrAccess Access { get; set; }
 		public string Name { get; set; }
 	}
 
-	public class RClass
+	public class RClass : ICloneable
 	{
 		private List<FunctionItem> _functionItems = new List<FunctionItem>();
 
-		public Dictionary<string, string> AliasList { get; set; }
-		public List<Attr> AttrList { get; set; }
+        public List<Properties> Properties { get; set; }
+	    public string Name { get; set; }
 
-		public List<FunctionItem> FunctionList
+	    public List<FunctionItem> FunctionList
 		{
 			get { return _functionItems; }
 			set { _functionItems = value; }
 		}
+
+	    public object Clone()
+	    {
+            return new RClass
+	        {
+	            Name = Name,
+	            Properties = new List<Properties>(Properties),
+	            FunctionList = new List<FunctionItem>(FunctionList)
+	        };
+	    }
 	}
 }

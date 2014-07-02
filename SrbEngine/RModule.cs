@@ -9,7 +9,9 @@ namespace SrbEngine
     {
 		private List<RClass> _classList = new List<RClass>();
 
-	    public List<RClass> ClassList
+        public string Name { get; set; }
+
+        public List<RClass> ClassList
 	    {
 		    get { return _classList; }
 		    set { _classList = value; }

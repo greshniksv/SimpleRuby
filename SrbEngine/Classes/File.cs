@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using SrbRuby;
 
-namespace SrbEngine.Class
+namespace SrbEngine.Classes
 {
 	class File : IClass
 	{

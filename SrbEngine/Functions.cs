@@ -16,6 +16,7 @@ namespace SrbRuby
         public List<string> Code { get; set; }
         public Guid Id { get; set; }
         public List<string> Parameters { get; set; }
+        public bool IsStatic { get; set; }
 
         public object Clone()
         {
@@ -24,7 +25,8 @@ namespace SrbRuby
                 Name = this.Name,
                 Code = new List<string>(this.Code),
                 Id = new Guid(Id.ToString()),
-                Parameters = new List<string>(Parameters)
+                Parameters = new List<string>(Parameters),
+                IsStatic = IsStatic
             };
         }
     }
@@ -42,7 +44,6 @@ namespace SrbRuby
 
         public delegate void ExecuteCode(string function, string command);
         public event ExecuteCode ExecuteCodeEvent = delegate { };
-
 
         public Functions(FunctionItem function, List<string> yieldList=null)
         {
